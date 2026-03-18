@@ -1,7 +1,7 @@
 create table if not exists ai_inference_runs (
   id bigserial primary key,
   project_id uuid not null references projects(id),
-  routine_run_id uuid references routine_runs(id),
+  routine_run_id uuid,
   provider text not null,
   model text,
   latency_ms integer not null default 0,
