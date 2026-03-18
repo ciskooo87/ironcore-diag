@@ -5,6 +5,7 @@ import { PrintButton } from "@/components/PrintButton";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";
+import { appPath } from "@/lib/app-path";
 import { listHistoricalDiagnosisValidations } from "@/lib/historical-validation";
 import { ensureCsrfCookie } from "@/lib/csrf";
 import { getLatestHistoricalDiagnosis } from "@/lib/historical-diagnosis";
@@ -27,7 +28,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
     <AppShell user={user} title="Entrega final do diagnóstico" subtitle="Etapas 9 e 10 do workflow">
       <ProductHero eyebrow="etapas 9 e 10" title="Valide humanamente e entregue o diagnóstico final" description="Entrega final em tela e exportação para documento.">
         <PrintButton />
-        <Link href={`/api/projects/${id}/pdf`} className="pill">Abrir versão documento</Link>
+        <Link href={appPath(`/api/projects/${id}/pdf`)} className="pill">Abrir versão documento</Link>
       </ProductHero>
 
       {query.saved ? <div className="alert ok-bg mb-4">Entrega final consolidada.</div> : null}
@@ -36,7 +37,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
         <section className="card text-sm">
           <div className="font-medium mb-3">Validação humana</div>
           {latestDiagnosis ? (
-            <form action={`/api/projects/${id}/historical-diagnosis/validate`} method="post" className="grid gap-2">
+            <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate`)} method="post" className="grid gap-2">
               <input type="hidden" name="csrf_token" value={csrf} />
               <input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} />
               <select name="decision" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2">
@@ -51,7 +52,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
             <EmptyState title="Sem análise para validar" description="Gere a análise IA primeiro." />
           )}
 
-          <form action={`/api/projects/${id}/finalize`} method="post" className="mt-4">
+          <form action={appPath(`/api/projects/${id}/finalize`)} method="post" className="mt-4">
             <button type="submit" className="badge py-2 px-3 cursor-pointer">Gerar entrega final</button>
           </form>
         </section>

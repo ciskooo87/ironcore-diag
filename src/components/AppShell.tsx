@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SessionUser } from "@/lib/auth";
+import { appPath } from "@/lib/app-path";
 
 export function AppShell({ title, subtitle, user, children }: { title: string; subtitle?: string; user: SessionUser; children: React.ReactNode }) {
   return (
@@ -12,10 +13,12 @@ export function AppShell({ title, subtitle, user, children }: { title: string; s
             {subtitle ? <p className="text-sm text-slate-400 mt-1">{subtitle}</p> : null}
           </div>
           <div className="flex gap-2 items-center flex-wrap">
-            <Link href="/dashboard" className="pill">Dashboard</Link>
+            <Link href={appPath("/dashboard")} className="pill">Dashboard</Link>
             <span className="pill">{user.name}</span>
             <span className="pill">{user.role}</span>
-            <form action="/api/auth/logout" method="post"><button className="pill" type="submit">Sair</button></form>
+            <form action={appPath("/api/auth/logout")} method="post">
+              <button className="pill" type="submit">Sair</button>
+            </form>
           </div>
         </div>
       </header>

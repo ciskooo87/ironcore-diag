@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ensureCsrfCookie } from "@/lib/csrf";
+import { appPath } from "@/lib/app-path";
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
@@ -12,7 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="text-[12px] uppercase tracking-[0.28em] text-cyan-300">IRONCORE DIAG</div>
         <h1 className="text-2xl font-semibold mt-2">Login</h1>
         <p className="text-sm text-slate-400 mt-1">Acesso ao produto de diagnóstico histórico</p>
-        <form action="/api/auth/login" method="post" className="mt-4 space-y-3">
+        <form action={appPath("/api/auth/login")} method="post" className="mt-4 space-y-3">
           <input type="hidden" name="csrf_token" value={csrf} />
           <input name="email" type="email" placeholder="email" required className="w-full bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
           <input name="password" type="password" placeholder="senha" required className="w-full bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
