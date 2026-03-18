@@ -1,3 +1,10 @@
+function normalizeBasePath(input?: string | null) {
+  if (!input) return "";
+  const p = input.trim();
+  if (!p || p === "/") return "";
+  return p.startsWith("/") ? p.replace(/\/$/, "") : `/${p.replace(/\/$/, "")}`;
+}
+
 export function getPublicOrigin(req: Request) {
   const envOrigin = process.env.APP_PUBLIC_URL?.trim();
   if (envOrigin) {
@@ -14,6 +21,10 @@ export function getPublicOrigin(req: Request) {
 }
 
 export function publicUrl(req: Request, path: string) {
+  const basePath = normalizeBasePath(process.env.APP_BASE_PATH || req.headers.get("x-forwarded-prefix"));
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return new URL(normalizedPath, getPublicOrigin(req));
+  const withBase = basePath && !normalizedPath.startsWith(`${basePath}/`) && normalizedPath !== basePath
+    ? `${basePath}${normalizedPath}`
+    : normalizedPath;
+  return new URL(withBase, getPublicOrigin(req));
 }
