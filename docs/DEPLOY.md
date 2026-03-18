@@ -45,6 +45,25 @@ bash ./scripts/deploy-prod.sh
 ## 6. Smoke tests
 ```bash
 curl -I http://127.0.0.1:3011
+curl -I http://127.0.0.1:3011/diag/
+curl -I -H 'Host: ironcore.lat' http://127.0.0.1/diag/
+curl -I -L https://ironcore.lat/diag/
+```
+
+## 7. Ordem de diagnóstico para 502
+```bash
+systemctl status ironcore-diag.service --no-pager
+journalctl -u ironcore-diag.service -n 100 --no-pager
+curl -I http://127.0.0.1:3011
+curl -I -H 'Host: diag.ironcore.lat' http://127.0.0.1/
+```
+/.openclaw/workspace/ironcore-diag
+bash ./scripts/deploy-prod.sh
+```
+
+## 6. Smoke tests
+```bash
+curl -I http://127.0.0.1:3011
 curl -I -H 'Host: diag.ironcore.lat' http://127.0.0.1/
 curl -I -L https://diag.ironcore.lat
 ```

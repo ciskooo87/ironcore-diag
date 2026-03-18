@@ -3,13 +3,27 @@ import type { NextRequest } from "next/server";
 
 const AUTH_COOKIE = "ironcore_session";
 const CSRF_COOKIE = "ironcore_csrf";
+const BASE_PATH = (process.env.APP_BASE_PATH || "").trim();
 
 function makeCsrf() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
 }
 
+function stripBase(pathname: string) {
+  if (!BASE_PATH) return pathname;
+  if (pathname === BASE_PATH) return "/";
+  if (pathname.startsWith(`${BASE_PATH}/`)) return pathname.slice(BASE_PATH.length) || "/";
+  return pathname;
+}
+
+function withBase(pathname: string) {
+  if (!BASE_PATH) return pathname;
+  if (pathname === "/") return BASE_PATH;
+  return `${BASE_PATH}${pathname}`;
+}
+
 export function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const pathname = stripBase(req.nextUrl.pathname);
 
   const withCsrf = (res: NextResponse) => {
     if (!req.cookies.get(CSRF_COOKIE)?.value) {
@@ -17,7 +31,7 @@ export function proxy(req: NextRequest) {
         httpOnly: false,
         sameSite: "lax",
         secure: true,
-        path: "/",
+        path: BASE_PATH || "/",
         maxAge: 60 * 60 * 12,
       });
     }
@@ -27,13 +41,8 @@ export function proxy(req: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/lead") ||
     pathname === "/" ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/lp") ||
-    pathname.startsWith("/dre") ||
-    pathname.startsWith("/treino") ||
-    pathname.startsWith("/Leo") ||
     pathname === "/favicon.ico"
   ) {
     return withCsrf(NextResponse.next());
@@ -42,7 +51,7 @@ export function proxy(req: NextRequest) {
   const session = req.cookies.get(AUTH_COOKIE)?.value;
   if (!session) {
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = withBase("/login");
     return withCsrf(NextResponse.redirect(url));
   }
 
