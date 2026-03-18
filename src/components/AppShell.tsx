@@ -16,7 +16,7 @@ export function AppShell({ title, subtitle, user, children }: { title: string; s
             <Link href="/dashboard" className="pill">Dashboard</Link>
             <span className="pill">{user.name}</span>
             <span className="pill">{user.role}</span>
-            <form action={appPath("/api/auth/logout")} method="post">
+            <form action={appPath("/api/auth/logout/")} method="post">
               <button className="pill" type="submit">Sair</button>
             </form>
           </div>
