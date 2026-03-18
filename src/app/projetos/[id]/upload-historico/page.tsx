@@ -7,6 +7,7 @@ import { canAccessProject } from "@/lib/permissions";
 import { appPath } from "@/lib/app-path";
 import { listDailyEntries } from "@/lib/daily";
 import { todayInSaoPauloISO } from "@/lib/time";
+import { UploadHistoryForm } from "@/components/UploadHistoryForm";
 
 const kinds = [
   ["historico_faturamento", "Faturamento"],
