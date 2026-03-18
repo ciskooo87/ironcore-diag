@@ -16,12 +16,6 @@ function stripBase(pathname: string) {
   return pathname;
 }
 
-function withBase(pathname: string) {
-  if (!BASE_PATH) return pathname;
-  if (pathname === "/") return BASE_PATH;
-  return `${BASE_PATH}${pathname}`;
-}
-
 export function proxy(req: NextRequest) {
   const pathname = stripBase(req.nextUrl.pathname);
 
@@ -40,7 +34,7 @@ export function proxy(req: NextRequest) {
 
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/") ||
     pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname === "/favicon.ico"
@@ -51,7 +45,7 @@ export function proxy(req: NextRequest) {
   const session = req.cookies.get(AUTH_COOKIE)?.value;
   if (!session) {
     const url = req.nextUrl.clone();
-    url.pathname = withBase("/login");
+    url.pathname = "/login";
     return withCsrf(NextResponse.redirect(url));
   }
 
