@@ -1,0 +1,4 @@
+export function diagnosisHtml(input: { title: string; projectName: string; summary: string; attentionPoints: string[]; narrative: string; }) {
+  const items = input.attentionPoints.map((item) => `<li>${item}</li>`).join("");
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${input.title}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1,h2{margin:0 0 12px}p,li{line-height:1.5}section{margin:24px 0}</style></head><body><h1>${input.title}</h1><p><strong>Projeto:</strong> ${input.projectName}</p><section><h2>Resumo executivo</h2><p>${input.summary}</p></section><section><h2>Pontos de atenção</h2><ul>${items}</ul></section><section><h2>Diagnóstico</h2><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${input.narrative}</pre></section></body></html>`;
+}

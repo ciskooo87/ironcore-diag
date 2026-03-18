@@ -10,22 +10,19 @@ export type HistoricalUploadAggregate = {
     contasPagar: number;
     extratoBancario: number;
     duplicatas: number;
+    endividamentoBancos: number;
+    endividamentoFidc: number;
   };
   latestBusinessDate: string | null;
 };
 
 export async function getHistoricalUploadAggregate(projectId: string): Promise<HistoricalUploadAggregate> {
-  const q = await dbQuery<{
-    business_date: string;
-    payload: Record<string, unknown>;
-  }>(
+  const q = await dbQuery<{ business_date: string; payload: Record<string, unknown> }>(
     `select business_date::text, payload
      from daily_entries
      where project_id=$1
        and source_type='upload'
-       and (
-         coalesce(payload->>'notes','') ilike '%upload_kind:historico_%'
-       )
+       and coalesce(payload->>'notes','') ilike '%upload_kind:historico_%'
      order by business_date desc, created_at desc`,
     [projectId]
   );
@@ -37,6 +34,8 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     contasPagar: 0,
     extratoBancario: 0,
     duplicatas: 0,
+    endividamentoBancos: 0,
+    endividamentoFidc: 0,
   };
 
   for (const row of q.rows) {
@@ -51,43 +50,22 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     totals.contasPagar += Number(payload.contas_pagar || 0);
     totals.extratoBancario += Number(payload.extrato_bancario || 0);
     totals.duplicatas += Number(payload.duplicatas || 0);
+    if (kind === "historico_endividamento_bancos") totals.endividamentoBancos += Number(payload.contas_pagar || payload.duplicatas || 0);
+    if (kind === "historico_endividamento_fidc") totals.endividamentoFidc += Number(payload.contas_receber || payload.extrato_bancario || 0);
   }
 
-  return {
-    totalUploads: q.rows.length,
-    byKind,
-    totals,
-    latestBusinessDate: q.rows[0]?.business_date || null,
-  };
+  return { totalUploads: q.rows.length, byKind, totals, latestBusinessDate: q.rows[0]?.business_date || null };
 }
 
-export async function createHistoricalDiagnosis(input: {
-  projectId: string;
-  projectCode: string;
-  projectName: string;
-  projectSummary: string;
-}) {
+export async function createHistoricalDiagnosis(input: { projectId: string; projectCode: string; projectName: string; projectSummary: string; }) {
   const aggregate = await getHistoricalUploadAggregate(input.projectId);
-  if (aggregate.totalUploads === 0) {
-    throw new Error("historical_upload_missing");
-  }
+  if (aggregate.totalUploads === 0) throw new Error("historical_upload_missing");
 
-  const prompt = {
-    projectCode: input.projectCode,
-    projectName: input.projectName,
-    projectSummary: input.projectSummary,
-    aggregate,
-  };
-
+  const prompt = { projectCode: input.projectCode, projectName: input.projectName, projectSummary: input.projectSummary, aggregate };
   const fallback = JSON.stringify({
-    diagnosis: aggregate.totalUploads > 0 ? "Base histórica recebida parcialmente e pronta para revisão humana." : "Sem base histórica.",
-    risks: [
-      aggregate.totals.contasPagar > aggregate.totals.contasReceber ? "Pressão potencial de caixa no histórico consolidado." : "Sem pressão relevante de caixa identificada pela consolidação simples.",
-    ],
-    recommendations: [
-      "Validar cobertura de todas as categorias históricas exigidas pela planilha.",
-      "Revisar relação entre faturamento, pagar, receber e extrato para fechar diagnóstico final.",
-    ],
+    diagnosis: aggregate.totalUploads > 0 ? "Base histórica recebida e pronta para revisão humana." : "Sem base histórica.",
+    risks: [aggregate.totals.contasPagar > aggregate.totals.contasReceber ? "Pressão potencial de caixa no histórico consolidado." : "Sem pressão relevante de caixa identificada pela consolidação simples."],
+    recommendations: ["Validar cobertura de faturamento, CAR, CAP e endividamentos.", "Revisar relação entre histórico operacional e relato do projeto para fechar diagnóstico final."],
     executiveSummary: `Uploads históricos: ${aggregate.totalUploads}. Última base: ${aggregate.latestBusinessDate || "n/a"}.`,
   });
 
@@ -100,15 +78,8 @@ export async function createHistoricalDiagnosis(input: {
 
   try {
     const ai = await deepseekChat([
-      {
-        role: "system",
-        content:
-          "Você é o motor de diagnóstico histórico do Ironcore. Responda apenas JSON com diagnosis, risks, recommendations e executiveSummary, de forma objetiva e acionável.",
-      },
-      {
-        role: "user",
-        content: `Gere o diagnóstico histórico do projeto com base no contexto:\n${JSON.stringify(prompt)}`,
-      },
+      { role: "system", content: "Você é o motor de diagnóstico histórico do Ironcore. Responda apenas JSON com diagnosis, risks, recommendations e executiveSummary." },
+      { role: "user", content: `Gere o diagnóstico histórico do projeto com base no contexto:\n${JSON.stringify(prompt)}` },
     ]);
     provider = "deepseek";
     model = ai.model;
@@ -126,15 +97,7 @@ export async function createHistoricalDiagnosis(input: {
     [input.projectId, provider, model, latencyMs, status, JSON.stringify(prompt), response, error || null]
   );
 
-  return {
-    inferenceId: insert.rows[0]?.id || null,
-    provider,
-    model,
-    latencyMs,
-    status,
-    aggregate,
-    response,
-  };
+  return { inferenceId: insert.rows[0]?.id || null, provider, model, latencyMs, status, aggregate, response };
 }
 
 export async function getLatestHistoricalDiagnosis(projectId: string) {
