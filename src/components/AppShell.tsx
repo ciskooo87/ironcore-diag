@@ -13,7 +13,7 @@ export function AppShell({ title, subtitle, user, children }: { title: string; s
             {subtitle ? <p className="text-sm text-slate-400 mt-1">{subtitle}</p> : null}
           </div>
           <div className="flex gap-2 items-center flex-wrap">
-            <Link href={appPath("/dashboard")} className="pill">Dashboard</Link>
+            <Link href="/dashboard" className="pill">Dashboard</Link>
             <span className="pill">{user.name}</span>
             <span className="pill">{user.role}</span>
             <form action={appPath("/api/auth/logout")} method="post">
