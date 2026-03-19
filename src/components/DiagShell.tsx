@@ -32,7 +32,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
           <div className="mt-2 text-lg font-semibold text-white">IRONCORE /diag</div>
           <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
             {NAV.map((item) => {
-              const href = item.href === "/dashboard" || item.href === "/admin/" ? appPath(item.href) : appPath(`${projectBase}${item.href}`);
+              const href = item.href === "/dashboard" || item.href === "/admin/" ? item.href : `${projectBase}${item.href}`;
               const isActive = active === item.key;
               return <Link key={item.key} href={href} className={`whitespace-nowrap rounded-2xl border px-3 py-2 text-xs ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300"}`}>{item.label}</Link>;
             })}
