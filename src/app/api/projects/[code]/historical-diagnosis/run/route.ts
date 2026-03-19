@@ -11,9 +11,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   const { code } = await ctx.params;
   const user = await getSessionUser();
   const project = await getProjectByCode(code);
-  if (!user || !project) return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico-historico/?error=forbidden`));
+  if (!user || !project) return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico/?error=forbidden`));
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico-historico/?error=forbidden`));
+  if (!allowed) return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico/?error=forbidden`));
   try {
     const dbUser = await getUserByEmail(user.email);
     const out = await createHistoricalDiagnosis({ projectId: project.id, projectCode: project.code, projectName: project.name, projectSummary: project.project_summary || "" });
