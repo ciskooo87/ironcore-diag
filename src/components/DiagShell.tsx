@@ -11,7 +11,7 @@ const NAV = [
   { key: "alerts", label: "⚠️ Pontos de Atenção", href: "/conferencia/" },
   { key: "validation", label: "✅ Validação", href: "/entrega-final/" },
   { key: "document", label: "📄 Documento Final", href: "/entrega-final/" },
-  { key: "history", label: "🧬 Histórico", href: "/entrega-final/" },
+  { key: "history", label: "🧬 Histórico", href: "/historico/" },
   { key: "settings", label: "⚙️ Configurações", href: "/admin/" },
 ] as const;
 
