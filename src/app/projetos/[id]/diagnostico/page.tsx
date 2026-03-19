@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DiagShell } from "@/components/DiagShell";
 import { ExecutiveNarrative, AttentionList, RightRail } from "@/components/diag-panels";
+import { CopilotPanel } from "@/components/CopilotPanel";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";
@@ -48,14 +49,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
         </div>
 
         <RightRail title="Interação com IA">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Perguntas sugeridas</div>
-            <div className="mt-3 space-y-2 text-sm text-slate-300">
-              <div className="rounded-xl border border-slate-800 px-3 py-2">Explique melhor a causa raiz</div>
-              <div className="rounded-xl border border-slate-800 px-3 py-2">Simule um cenário com redução de caixa</div>
-              <div className="rounded-xl border border-slate-800 px-3 py-2">Quais evidências sustentam o alerta crítico?</div>
-            </div>
-          </div>
+          <CopilotPanel endpoint={appPath(`/api/projects/${id}/copilot/`)} />
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Confiança do dado</div>
             <div className="mt-2 text-3xl font-semibold text-white">{Math.min(95, 50 + presentation.aggregate.totalUploads * 8)}%</div>

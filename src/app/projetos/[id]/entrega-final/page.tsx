@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DiagShell } from "@/components/DiagShell";
 import { RightRail } from "@/components/diag-panels";
 import { PrintButton } from "@/components/PrintButton";
+import { ValidationMatrix } from "@/components/ValidationMatrix";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";
