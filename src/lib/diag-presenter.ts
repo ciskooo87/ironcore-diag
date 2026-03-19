@@ -18,6 +18,15 @@ export async function buildProjectPresentation(project: Project) {
     impact: i === 0 ? "Alto impacto potencial" : i === 1 ? "Impacto relevante" : "Impacto monitorável",
     origin: "Leitura IA + contexto do projeto",
     recommendation: i === 0 ? "Validar imediatamente" : "Revisar na próxima etapa",
+    action5w2h: {
+      what: `Tratar: ${item}`,
+      why: i === 0 ? "Evitar deterioração do diagnóstico e impacto financeiro imediato." : "Reduzir risco e elevar qualidade da decisão.",
+      who: i === 0 ? "Responsável do projeto + consultor líder" : "Consultor responsável",
+      when: i === 0 ? "Imediato" : "Próxima revisão",
+      where: "No fluxo do diagnóstico /diag",
+      how: "Validar evidências, ajustar narrativa e definir ação corretiva.",
+      howMuch: i === 0 ? "Impacto financeiro potencial alto" : "Impacto moderado / a confirmar",
+    },
   }));
 
   const caixaScore = Math.max(10, Math.min(95, 60 + Math.round((aggregate.totals.contasReceber - aggregate.totals.contasPagar) / 1000)));
