@@ -16,7 +16,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
     title: `Diagnóstico Final · ${project.name}`,
     projectName: project.name,
     client: project.legal_name,
-    score: Number(finalDiagnosis.score || 0),
+    score: Number(finalDiagnosis.score || 0) || undefined,
     summary: project.project_summary || '',
     attentionPoints: project.ai_attention_points || [],
     narrative: String(finalDiagnosis.narrative || 'Diagnóstico não consolidado ainda.'),
