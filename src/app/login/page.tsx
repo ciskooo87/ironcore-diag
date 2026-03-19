@@ -2,11 +2,21 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ensureCsrfCookie } from "@/lib/csrf";
 import { appPath } from "@/lib/app-path";
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const user = await getSessionUser();
   if (user) redirect("/dashboard");
+
   const params = await searchParams;
   const csrf = await ensureCsrfCookie();
+  const errorMessage = params.error === "csrf"
+    ? "Sessão do formulário expirou. Tente entrar novamente."
+    : params.error === "rate"
+      ? "Muitas tentativas. Aguarde um pouco e tente de novo."
+      : params.error
+        ? "Credenciais inválidas."
+        : null;
+
   return (
     <main className="min-h-screen p-6 md:p-8 flex items-center justify-center">
       <section className="card w-full max-w-md">
@@ -19,7 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <input name="password" type="password" placeholder="senha" required className="w-full bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-sm" />
           <button type="submit" className="w-full badge py-2 cursor-pointer">Entrar</button>
         </form>
-        {params.error ? <div className="alert bad-bg mt-3">Credenciais inválidas.</div> : null}
+        {errorMessage ? <div className="alert bad-bg mt-3">{errorMessage}</div> : null}
       </section>
     </main>
   );

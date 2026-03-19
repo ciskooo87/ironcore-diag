@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-export const CSRF_COOKIE = "ironcore_csrf";
+export const CSRF_COOKIE = "ironcore_diag_csrf";
 
 export function createCsrfToken() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
