@@ -5,6 +5,7 @@ import { canAccessProject } from "@/lib/permissions";
 import { publicUrl } from "@/lib/request-url";
 import { buildFinalDiagnosis, logWorkflowEvent } from "@/lib/diag-workflow";
 import { buildFinalExecutiveReport } from "@/lib/final-report";
+import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { getUserByEmail } from "@/lib/users";
 
 export async function POST(req: Request, ctx: { params: Promise<{ code: string }> }) {
@@ -23,14 +24,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
 
   const finalDiagnosis = await buildFinalDiagnosis(project);
   const executiveReport = await buildFinalExecutiveReport(project);
-  const actions5w2h = Array.isArray((finalDiagnosis as any).attentionPoints)
-    ? []
-    : [];
+  const refreshedProject = (await getProjectByCode(code)) || project;
+  const presentation = await buildProjectPresentation(refreshedProject);
+  const actions5w2h = presentation.attention
+    .map((item) => ("action5w2h" in item ? item.action5w2h : null))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   const mergedFinal = {
     ...finalDiagnosis,
     executiveReport,
     actions5w2h,
+    score: presentation.overallScore,
+    generatedAt: new Date().toISOString(),
   };
 
   await updateProjectByCode(code, {
@@ -54,7 +59,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
     projectId: project.id,
     stepKey: "entrega_final",
     status: "concluido",
-    payload: executiveReport as unknown as Record<string, unknown>,
+    payload: { score: presentation.overallScore, actions5w2h: actions5w2h.length },
     createdBy: dbUser?.id || null,
   });
 

@@ -50,6 +50,46 @@ export async function listWorkflowEvents(projectId: string) {
   return q.rows;
 }
 
+export function getWorkflowStepLabel(step?: string | null) {
+  return WORKFLOW_STEPS.find((item) => item.key === step)?.label || "Novo projeto";
+}
+
+export async function buildWorkflowChecklist(project: Project) {
+  const aggregate = await getHistoricalUploadAggregate(project.id);
+  const normalized = (project.normalization_payload || {}) as any;
+  const latestDiagnosis = await getLatestHistoricalDiagnosis(project.id);
+  const validationsQ = await dbQuery<{ total: string }>(
+    `select count(*)::text as total from historical_diagnosis_validations where project_id=$1`,
+    [project.id]
+  ).catch(() => ({ rows: [{ total: "0" }] }));
+  const validations = Number(validationsQ.rows[0]?.total || 0);
+  const kinds = new Set(Object.keys(aggregate.byKind || {}));
+  const missingKinds = DIAG_BASE_KINDS.filter((kind) => !kinds.has(kind));
+  const finalDiagnosis = (project.final_diagnosis || {}) as Record<string, any>;
+
+  const checklist = [
+    { key: "cadastro", label: "Cadastro essencial preenchido", done: Boolean(project.name && project.cnpj && project.legal_name && project.segment && project.project_summary) },
+    { key: "upload_historico", label: "5 bases históricas obrigatórias enviadas", done: missingKinds.length === 0, detail: missingKinds.length ? `Faltando: ${missingKinds.join(", ")}` : `Cobertura completa com ${aggregate.totalUploads} uploads.` },
+    { key: "relato_historico", label: "Relato do projeto registrado", done: Boolean(project.historical_context?.trim()) },
+    { key: "normalizacao", label: "Normatização automática gerada", done: project.normalization_status === "gerado" || project.normalization_status === "confirmado", detail: normalized?.uploads?.total ? `${normalized.uploads.total} uploads consolidados.` : undefined },
+    { key: "conferencia_normalizacao", label: "Conferência da normatização concluída", done: project.normalization_status === "confirmado" },
+    { key: "analise_ia", label: "Análise IA executada", done: Boolean(latestDiagnosis), detail: latestDiagnosis ? `Última execução: ${latestDiagnosis.provider}/${latestDiagnosis.model || "n/a"}` : undefined },
+    { key: "validacao_humana", label: "Validação humana registrada", done: validations > 0, detail: validations > 0 ? `${validations} decisão(ões) registradas.` : undefined },
+    { key: "entrega_final", label: "Documento final consolidado", done: Boolean(finalDiagnosis.executiveReport), detail: finalDiagnosis.executiveReport ? "Tela e documento preparados para exportação." : undefined },
+  ];
+
+  return {
+    aggregate,
+    missingKinds,
+    latestDiagnosis,
+    validations,
+    checklist,
+    progressPercent: Math.round((checklist.filter((item) => item.done).length / checklist.length) * 100),
+    readyForAi: missingKinds.length === 0 && Boolean(project.historical_context?.trim()) && project.normalization_status === "confirmado",
+    readyForFinalDelivery: Boolean(latestDiagnosis) && validations > 0,
+  };
+}
+
 export async function buildNormalization(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
@@ -75,8 +115,8 @@ export async function buildNormalization(project: Project) {
       faturamento: aggregate.totals.faturamento,
       contasReceber: aggregate.totals.contasReceber,
       contasPagar: aggregate.totals.contasPagar,
-      endividamentoBancos: Number((aggregate.byKind.historico_endividamento_bancos || 0) > 0 ? aggregate.totals.duplicatas : 0),
-      endividamentoFidc: Number((aggregate.byKind.historico_endividamento_fidc || 0) > 0 ? aggregate.totals.extratoBancario : 0),
+      endividamentoBancos: aggregate.totals.endividamentoBancos,
+      endividamentoFidc: aggregate.totals.endividamentoFidc,
       pressure,
     },
     checkpoints: {
@@ -92,9 +132,11 @@ export async function buildNormalization(project: Project) {
 export async function extractAttentionPoints(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const context = String((project as any).historical_context || "").trim();
+  const baseKinds = Object.keys(aggregate.byKind || {});
+  const missingKinds = DIAG_BASE_KINDS.filter((kind) => !baseKinds.includes(kind));
   const points = [
     aggregate.totals.contasPagar > aggregate.totals.contasReceber ? "Pressão de caixa histórica: CAP acima de CAR." : "Sem pressão histórica dominante entre CAR e CAP na consolidação simples.",
-    aggregate.totalUploads < DIAG_BASE_KINDS.length ? "Cobertura histórica incompleta para fechamento do diagnóstico." : "Cobertura histórica principal recebida.",
+    missingKinds.length ? `Cobertura histórica incompleta: faltam ${missingKinds.join(", ")}.` : "Cobertura histórica principal recebida.",
     context ? `Relato do projeto registrado: ${context.slice(0, 220)}` : "Relato histórico ainda não preenchido.",
   ];
   await dbQuery(`update projects set ai_attention_points=$2::jsonb, updated_at=now() where id=$1`, [project.id, JSON.stringify(points)]);

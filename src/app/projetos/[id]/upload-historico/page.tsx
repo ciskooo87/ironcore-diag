@@ -9,6 +9,7 @@ import { listDailyEntries } from "@/lib/daily";
 import { todayInSaoPauloISO } from "@/lib/time";
 import { UploadHistoryForm } from "@/components/UploadHistoryForm";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
+import { buildWorkflowChecklist, DIAG_BASE_KINDS } from "@/lib/diag-workflow";
 
 const kinds = [
   ["historico_faturamento", "Faturamento"],
@@ -23,22 +24,23 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Dados & Inputs" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Dados & Inputs" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
   const entries = await listDailyEntries(project.id, 100);
   const uploads = entries.filter((e) => String((e.payload || {}).notes || "").includes("upload_kind:historico_"));
   const presentation = await buildProjectPresentation(project);
+  const workflow = await buildWorkflowChecklist(project);
 
   return (
     <DiagShell
       user={user}
-      title="Dados & Inputs"
-      subtitle="Upload inteligente, preview estruturado e confiança do dado. Aqui o diagnóstico começa com qualidade de base, não com cara de Excel." 
+      title="Upload das bases históricas"
+      subtitle="Aqui entram as 5 bases obrigatórias do diagnóstico: faturamento, CAR, CAP, endividamento bancos e endividamento FIDC. Sem isso, o fluxo não fecha do jeito certo."
       active="inputs"
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
-      status={`Bases recebidas: ${uploads.length}`}
+      status={`Cobertura: ${DIAG_BASE_KINDS.length - workflow.missingKinds.length}/${DIAG_BASE_KINDS.length} bases`}
       cta={<Link href={`/projetos/${id}/contexto/`} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Avançar para relato</Link>}
     >
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -47,9 +49,9 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Upload inteligente</div>
-            <h2 className="mt-2 text-xl font-semibold text-white">Dados & Inputs</h2>
-            <p className="mt-2 text-sm text-slate-400">Suba as bases principais com drag & drop funcional e categorização automática por tipo de input.</p>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Bases obrigatórias</div>
+            <h2 className="mt-2 text-xl font-semibold text-white">Upload histórico do projeto</h2>
+            <p className="mt-2 text-sm text-slate-400">Suba as bases certas, já categorizadas. CAR = Contas a Receber. CAP = Contas a Pagar.</p>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {kinds.map(([kind, label]) => (
                 <UploadHistoryForm key={kind} action={appPath(`/api/projects/${id}/daily/upload/`)} kind={kind} label={label} defaultDate={todayInSaoPauloISO()} />
@@ -58,8 +60,25 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           </section>
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Cobertura</div>
+            <h2 className="mt-2 text-xl font-semibold text-white">Checklist das bases históricas</h2>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
+              {kinds.map(([kind, label]) => {
+                const done = !workflow.missingKinds.includes(kind);
+                return (
+                  <div key={kind} className={`rounded-2xl border p-4 ${done ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-amber-400/20 bg-amber-400/10 text-amber-100"}`}>
+                    <div className="text-xs uppercase tracking-[0.18em] opacity-80">{done ? "Recebido" : "Pendente"}</div>
+                    <div className="mt-2 font-medium">{label}</div>
+                    <div className="mt-2 text-xs opacity-80">{done ? "Base presente na consolidação." : "Enviar para fechar o diagnóstico."}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Preview estruturado</div>
-            <h2 className="mt-2 text-xl font-semibold text-white">O dado entra limpo, categorizado e pronto para leitura</h2>
+            <h2 className="mt-2 text-xl font-semibold text-white">Últimos uploads recebidos</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
               {uploads.slice(0, 6).map((entry) => (
                 <div key={entry.id} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
@@ -73,17 +92,16 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           </section>
         </div>
 
-        <RightRail title="Confiança do dado">
+        <RightRail title="Prontidão do fluxo">
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Score de confiabilidade</div>
-            <div className="mt-2 text-3xl font-semibold text-white">{Math.min(95, 40 + uploads.length * 10)}%</div>
-            <div className="mt-2 text-sm text-slate-400">Quanto maior a cobertura, melhor a qualidade da análise seguinte.</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Score de cobertura</div>
+            <div className="mt-2 text-3xl font-semibold text-white">{workflow.progressPercent}%</div>
+            <div className="mt-2 text-sm text-slate-400">Mede o quanto o projeto já percorreu do workflow completo.</div>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Flags</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Faltas críticas</div>
             <div className="mt-3 space-y-2 text-sm text-slate-300">
-              <div className="rounded-xl border border-slate-800 px-3 py-2">Inconsistência: {uploads.length < 5 ? "Bases incompletas" : "Sem alerta crítico de cobertura"}</div>
-              <div className="rounded-xl border border-slate-800 px-3 py-2">Categorização automática: ativa</div>
+              {workflow.missingKinds.length ? workflow.missingKinds.map((kind) => <div key={kind} className="rounded-xl border border-slate-800 px-3 py-2">{kind}</div>) : <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-emerald-100">Todas as bases obrigatórias foram recebidas.</div>}
             </div>
           </div>
         </RightRail>

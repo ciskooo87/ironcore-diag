@@ -7,6 +7,7 @@ import { publicUrl } from "@/lib/request-url";
 import { getUserByEmail } from "@/lib/users";
 import { dbQuery } from "@/lib/db";
 import { buildHistoricalValidationSummary } from "@/lib/historical-validation";
+import { logWorkflowEvent } from "@/lib/diag-workflow";
 
 export async function POST(req: Request, ctx: { params: Promise<{ code: string }> }) {
   const { code } = await ctx.params;
@@ -29,5 +30,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   await dbQuery(`insert into historical_diagnosis_validations(project_id, inference_run_id, decision, note, summary_text, validated_by) values($1,$2,$3,$4,$5,$6)`, [project.id, inferenceRunId, decision, note || null, summaryText, dbUser?.id || null]);
   await dbQuery(`insert into audit_log(project_id, actor_user_id, action, entity, entity_id, after_data) values($1,$2,$3,$4,$5,$6::jsonb)`, [project.id, dbUser?.id || null, 'historical.diagnosis.validate', 'ai_inference_runs', inferenceRunId, JSON.stringify({ decision, note, summaryText })]);
   await dbQuery(`update projects set workflow_state='validacao_humana', updated_at=now() where id=$1`, [project.id]);
+  await logWorkflowEvent({ projectId: project.id, stepKey: "validacao_humana", status: "concluido", payload: { inferenceRunId, decision }, createdBy: dbUser?.id || null });
   return NextResponse.redirect(publicUrl(req, `/projetos/${code}/entrega-final/?saved=historical_validation`));
 }
