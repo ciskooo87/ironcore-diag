@@ -54,7 +54,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
 
             <nav className="space-y-2">
               {NAV.map((item) => {
-                const href = item.href === "/dashboard" || item.href === "/admin/" ? appPath(item.href) : appPath(`${projectBase}${item.href}`);
+                const href = item.href === "/dashboard" || item.href === "/admin/" ? item.href : `${projectBase}${item.href}`;
                 const isActive = active === item.key;
                 return (
                   <Link key={item.key} href={href} className={`block rounded-2xl border px-3 py-3 text-sm transition ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>

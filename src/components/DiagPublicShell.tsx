@@ -42,7 +42,7 @@ export function DiagPublicShell({ title, subtitle, children, active = "overview"
             </div>
             <nav className="space-y-2">
               {NAV.map((item) => (
-                <Link key={item.key} href={appPath(item.href)} className={`block rounded-2xl border px-3 py-3 text-sm transition ${active === item.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>{item.label}</Link>
+                <Link key={item.key} href={item.href} className={`block rounded-2xl border px-3 py-3 text-sm transition ${active === item.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>{item.label}</Link>
               ))}
             </nav>
             <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/30 p-3">
