@@ -23,6 +23,8 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
             body: new FormData(form),
             credentials: "same-origin",
             redirect: "follow",
+            cache: "no-store",
+            headers: { "x-diag-client": "upload-form" },
           });
           if (!res.ok) throw new Error(`upload_failed_${res.status}`);
           window.location.href = res.url;
