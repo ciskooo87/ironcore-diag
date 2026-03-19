@@ -18,10 +18,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
     const dbUser = await getUserByEmail(user.email);
     const out = await createHistoricalDiagnosis({ projectId: project.id, projectCode: project.code, projectName: project.name, projectSummary: project.project_summary || "" });
     await dbQuery("insert into audit_log(project_id, actor_user_id, action, entity, entity_id, after_data) values($1,$2,$3,$4,$5,$6::jsonb)", [project.id, dbUser?.id || null, "historical.diagnosis.run", "ai_inference_runs", String(out.inferenceId || ""), JSON.stringify(out)]);
-    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico-historico/?saved=historical_diagnosis`));
+    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico/?saved=historical_diagnosis`));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "historical_diagnosis_error";
-    if (msg === "historical_upload_missing") return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico-historico/?error=historical_upload_missing`));
-    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico-historico/?error=historical_diagnosis_error`));
+    if (msg === "historical_upload_missing") return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico/?error=historical_upload_missing`));
+    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/diagnostico/?error=historical_diagnosis_error`));
   }
 }
