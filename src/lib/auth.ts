@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { dbQuery } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 
-export const AUTH_COOKIE = "ironcore_session";
+export const AUTH_COOKIE = "ironcore_diag_session";
 
 export type UserRole = "consultor" | "head" | "diretoria" | "admin_master";
 

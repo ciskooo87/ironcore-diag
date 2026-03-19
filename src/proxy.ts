@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_COOKIE = "ironcore_session";
-const CSRF_COOKIE = "ironcore_csrf";
+const AUTH_COOKIE = "ironcore_diag_session";
+const CSRF_COOKIE = "ironcore_diag_csrf";
 const BASE_PATH = (process.env.APP_BASE_PATH || "").trim();
 
 function makeCsrf() {
