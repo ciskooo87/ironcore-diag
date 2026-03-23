@@ -15,6 +15,7 @@ import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist } from "@/lib/diag-workflow";
 
 type ReportRow = { period: string; value: string | number };
+type StatementRow = { label: string; values: number[] };
 type Action5w2h = { what?: string; why?: string; who?: string; when?: string; where?: string; how?: string; howMuch?: string };
 type FinalReport = {
   executiveSummary?: string;
@@ -29,7 +30,74 @@ type FinalReport = {
   dreProjected?: ReportRow[];
   dfcHistorical?: ReportRow[];
   dfcProjected?: ReportRow[];
+  dreHistoricalStatement?: { periods: string[]; rows: StatementRow[] };
+  dreProjectedStatement?: { periods: string[]; rows: StatementRow[] };
+  dfcHistoricalStatement?: { periods: string[]; rows: StatementRow[] };
+  dfcProjectedStatement?: { periods: string[]; rows: StatementRow[] };
+  kpis?: { label: string; value: string; tone: "cyan" | "emerald" | "amber" | "rose" }[];
 };
+
+function money(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+}
+
+function toneClass(tone: "cyan" | "emerald" | "amber" | "rose") {
+  return {
+    cyan: "border-cyan-400/20 bg-cyan-400/10 text-cyan-100",
+    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-100",
+    amber: "border-amber-400/20 bg-amber-400/10 text-amber-100",
+    rose: "border-rose-400/20 bg-rose-400/10 text-rose-100",
+  }[tone];
+}
+
+function MiniBarChart({ title, series, positive = true }: { title: string; series: ReportRow[]; positive?: boolean }) {
+  const max = Math.max(...series.map((item) => Math.abs(Number(item.value) || 0)), 1);
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5">
+      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
+      <div className="mt-4 space-y-3">
+        {series.map((item) => {
+          const numeric = Number(item.value) || 0;
+          const width = Math.max(6, Math.round((Math.abs(numeric) / max) * 100));
+          return (
+            <div key={item.period}>
+              <div className="mb-1 flex justify-between text-xs text-slate-400"><span>{item.period}</span><span>{money(numeric)}</span></div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-900">
+                <div className={`h-full rounded-full ${positive ? "bg-cyan-400" : "bg-rose-400"}`} style={{ width: `${width}%` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StatementTable({ title, statement }: { title: string; statement?: { periods: string[]; rows: StatementRow[] } }) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5 overflow-x-auto">
+      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
+      {!statement ? <div className="mt-4 text-sm text-slate-500">Demonstrativo não consolidado.</div> : (
+        <table className="mt-4 min-w-[780px] w-full text-sm">
+          <thead>
+            <tr className="text-slate-400">
+              <th className="border-b border-slate-800 px-3 py-2 text-left">Linha</th>
+              {statement.periods.map((period) => <th key={period} className="border-b border-slate-800 px-3 py-2 text-right">{period}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {statement.rows.map((row) => (
+              <tr key={row.label}>
+                <td className="border-b border-slate-900 px-3 py-2 font-medium text-white">{row.label}</td>
+                {row.values.map((value, idx) => <td key={`${row.label}-${idx}`} className={`border-b border-slate-900 px-3 py-2 text-right ${value < 0 ? "text-rose-300" : "text-slate-300"}`}>{money(value)}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
 
 export default async function EntregaFinalPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
   const user = await requireUser();
@@ -48,27 +116,10 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
 
-  const attentionItems = presentation.attention
-    .filter((item) => "action5w2h" in item)
-    .map((item) => item as typeof item & { action5w2h: Action5w2h });
-
-  const seriesBlock = (title: string, rows: ReportRow[] | undefined) => (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5">
-      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
-      <div className="mt-3 space-y-2 text-xs">
-        {(rows || []).map((row) => (
-          <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1">
-            <span>{row.period}</span>
-            <span>{row.value}</span>
-          </div>
-        ))}
-        {!rows?.length ? <div className="text-slate-500">Sem série consolidada ainda.</div> : null}
-      </div>
-    </div>
-  );
+  const attentionItems = presentation.attention.filter((item) => "action5w2h" in item).map((item) => item as typeof item & { action5w2h: Action5w2h });
 
   return (
-    <DiagShell user={user} title="Validação humana e entrega final" subtitle="Fechamento do diagnóstico: leitura consolidada, decisão humana auditável e entrega final em tela e documento exportável." active="document" project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }} score={presentation.overallScore} status={workflow.readyForFinalDelivery ? "Pronto para entrega final" : "Aguardando validação humana ou consolidação final"} cta={<div className="flex gap-2"><PrintButton /><Link href={appPath(`/api/projects/${id}/pdf/`)} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Exportar PDF/HTML</Link></div>}>
+    <DiagShell user={user} title="Validação humana e entrega final" subtitle="Fechamento do diagnóstico com leitura executiva, demonstrativos financeiros, gráficos, decisão humana auditável e documento exportável." active="document" project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }} score={presentation.overallScore} status={workflow.readyForFinalDelivery ? "Pronto para entrega final" : "Aguardando validação humana ou consolidação final"} cta={<div className="flex gap-2"><PrintButton /><Link href={appPath(`/api/projects/${id}/pdf/`)} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Exportar PDF/HTML</Link></div>}>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Operação concluída.</div> : null}
@@ -77,16 +128,37 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Produto final</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Diagnóstico executivo final</h2>
-            <div className="mt-4 space-y-5 text-sm text-slate-300">
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {(report.kpis || []).map((item) => (
+                <div key={item.label} className={`rounded-2xl border p-4 ${toneClass(item.tone)}`}>
+                  <div className="text-xs uppercase tracking-[0.18em] opacity-80">{item.label}</div>
+                  <div className="mt-2 text-xl font-semibold">{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 space-y-5 text-sm text-slate-300">
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Resumo executivo</div><p className="mt-3 leading-7">{report.executiveSummary || presentation.executiveSummary}</p></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Leitura do cenário</div><p className="mt-3 leading-7">{report.scenarioReading || presentation.narrative}</p></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Causas raiz</div><ul className="mt-3 space-y-2">{(report.rootCauses || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <MiniBarChart title="Receita histórica (gráfico)" series={report.dreHistorical || []} positive />
+                <MiniBarChart title="Caixa histórico (gráfico)" series={report.dfcHistorical || []} positive={false} />
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento Bancos</div><p className="mt-3 leading-7">{report.debtAnalysis?.banks || "-"}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento FIDC</div><p className="mt-3 leading-7">{report.debtAnalysis?.fidc || "-"}</p></div></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Riscos prioritários</div><ul className="mt-3 space-y-2">{(report.priorityRisks || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Direcionamento estratégico</div><ul className="mt-3 space-y-2">{(report.strategicDirection || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Conclusão</div><p className="mt-3 leading-7">{report.conclusion || "-"}</p></div>
-              <div className="grid gap-4 xl:grid-cols-2">{seriesBlock("DRE histórico", report.dreHistorical)}{seriesBlock("DRE projetado", report.dreProjected)}{seriesBlock("DFC histórico", report.dfcHistorical)}{seriesBlock("DFC projetado", report.dfcProjected)}</div>
+
+              <StatementTable title="DRE histórico completo" statement={report.dreHistoricalStatement} />
+              <StatementTable title="DRE projetado completo" statement={report.dreProjectedStatement} />
+              <StatementTable title="DFC histórico completo" statement={report.dfcHistoricalStatement} />
+              <StatementTable title="DFC projetado completo" statement={report.dfcProjectedStatement} />
+
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Plano de ação 5W2H</div><div className="mt-3 space-y-3">{attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4"><div className="font-medium text-white">{item.title}</div><div className="mt-3 grid gap-2 text-xs text-slate-300 md:grid-cols-2 xl:grid-cols-3"><div><span className="text-slate-500">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-slate-500">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-slate-500">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-slate-500">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-slate-500">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-slate-500">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-slate-500">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}{attentionItems.length === 0 ? <div className="text-slate-500">Nenhuma ação 5W2H consolidada ainda.</div> : null}</div></div>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">

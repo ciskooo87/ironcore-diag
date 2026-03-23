@@ -2,6 +2,7 @@ import type { Project } from "@/lib/projects";
 import { getHistoricalUploadAggregate } from "@/lib/historical-diagnosis";
 
 type SeriesPoint = { period: string; value: number };
+type StatementRow = { label: string; values: number[] };
 
 type ReportBlock = {
   executiveSummary: string;
@@ -16,6 +17,11 @@ type ReportBlock = {
   dreProjected: SeriesPoint[];
   dfcHistorical: SeriesPoint[];
   dfcProjected: SeriesPoint[];
+  dreHistoricalStatement: { periods: string[]; rows: StatementRow[] };
+  dreProjectedStatement: { periods: string[]; rows: StatementRow[] };
+  dfcHistoricalStatement: { periods: string[]; rows: StatementRow[] };
+  dfcProjectedStatement: { periods: string[]; rows: StatementRow[] };
+  kpis: { label: string; value: string; tone: "cyan" | "emerald" | "amber" | "rose" }[];
 };
 
 function money(v: number) {
@@ -34,9 +40,58 @@ function buildSeries(base: number, months: number, monthlyChange: number): Serie
   return out;
 }
 
+function statementFromRevenue(series: SeriesPoint[], margin: number) {
+  const periods = series.map((item) => item.period);
+  const receita = series.map((item) => item.value);
+  const deducoes = receita.map((v) => Math.round(v * 0.08));
+  const receitaLiquida = receita.map((v, i) => v - deducoes[i]);
+  const custos = receitaLiquida.map((v) => Math.round(v * 0.62));
+  const lucroBruto = receitaLiquida.map((v, i) => v - custos[i]);
+  const despesasOperacionais = receitaLiquida.map((v) => Math.round(v * (margin < 0 ? 0.31 : 0.24)));
+  const ebitda = lucroBruto.map((v, i) => v - despesasOperacionais[i]);
+  const resultadoFinanceiro = receitaLiquida.map((v) => -Math.round(v * 0.09));
+  const lucroLiquido = ebitda.map((v, i) => v + resultadoFinanceiro[i]);
+
+  return {
+    periods,
+    rows: [
+      { label: "Receita bruta", values: receita },
+      { label: "(-) Deduções e impostos", values: deducoes.map((v) => -v) },
+      { label: "Receita líquida", values: receitaLiquida },
+      { label: "(-) Custos operacionais", values: custos.map((v) => -v) },
+      { label: "Lucro bruto", values: lucroBruto },
+      { label: "(-) Despesas operacionais", values: despesasOperacionais.map((v) => -v) },
+      { label: "EBITDA", values: ebitda },
+      { label: "Resultado financeiro", values: resultadoFinanceiro },
+      { label: "Lucro líquido", values: lucroLiquido },
+    ],
+  };
+}
+
+function statementFromCashflow(series: SeriesPoint[], pressure: number) {
+  const periods = series.map((item) => item.period);
+  const operacional = series.map((item) => item.value);
+  const investimento = operacional.map((v) => -Math.round(Math.abs(v) * 0.22));
+  const financiamento = operacional.map((v) => (v < 0 ? Math.round(Math.abs(v) * 0.48) : -Math.round(v * 0.28)));
+  const variacaoCaixa = operacional.map((v, i) => v + investimento[i] + financiamento[i]);
+  const caixaInicial = series.map((_, i) => Math.max(250000 - i * Math.round(Math.abs(pressure) / 12), 50000));
+  const caixaFinal = caixaInicial.map((v, i) => v + variacaoCaixa[i]);
+
+  return {
+    periods,
+    rows: [
+      { label: "Fluxo operacional", values: operacional },
+      { label: "Fluxo de investimento", values: investimento },
+      { label: "Fluxo de financiamento", values: financiamento },
+      { label: "Variação líquida de caixa", values: variacaoCaixa },
+      { label: "Caixa inicial", values: caixaInicial },
+      { label: "Caixa final", values: caixaFinal },
+    ],
+  };
+}
+
 export async function buildFinalExecutiveReport(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
-  const normalized = (project.normalization_payload || {}) as any;
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
   const totalDebt = aggregate.totals.endividamentoBancos + aggregate.totals.endividamentoFidc;
   const monthlyRevenue = aggregate.totals.faturamento / Math.max(aggregate.byKind.historico_faturamento || 1, 1);
@@ -88,6 +143,16 @@ export async function buildFinalExecutiveReport(project: Project) {
     dreProjected,
     dfcHistorical,
     dfcProjected,
+    dreHistoricalStatement: statementFromRevenue(dreHistorical, histMargin),
+    dreProjectedStatement: statementFromRevenue(dreProjected, histMargin + 0.05),
+    dfcHistoricalStatement: statementFromCashflow(dfcHistorical, pressure),
+    dfcProjectedStatement: statementFromCashflow(dfcProjected, pressure),
+    kpis: [
+      { label: "Receita histórica consolidada", value: money(aggregate.totals.faturamento), tone: "cyan" },
+      { label: "Pressão CAP x CAR", value: money(pressure), tone: pressure > 0 ? "rose" : "emerald" },
+      { label: "Dívida total estimada", value: money(totalDebt), tone: totalDebt > aggregate.totals.faturamento * 0.5 ? "amber" : "emerald" },
+      { label: "Margem histórica estimada", value: `${(histMargin * 100).toFixed(1)}%`, tone: histMargin < 0 ? "rose" : "emerald" },
+    ],
   };
 
   return report;
