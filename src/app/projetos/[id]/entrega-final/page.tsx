@@ -13,6 +13,7 @@ import { ensureCsrfCookie } from "@/lib/csrf";
 import { getLatestHistoricalDiagnosis } from "@/lib/historical-diagnosis";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist } from "@/lib/diag-workflow";
+import { listDeliveryVersions } from "@/lib/delivery-versions";
 
 type ReportRow = { period: string; value: string | number };
 type StatementRow = { label: string; values: number[] };
@@ -167,6 +168,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
   const latestDiagnosis = await getLatestHistoricalDiagnosis(project.id);
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
+  const versions = await listDeliveryVersions(project.id);
 
   const attentionItems = presentation.attention.filter((item) => "action5w2h" in item).map((item) => item as typeof item & { action5w2h: Action5w2h });
 
@@ -273,6 +275,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
           <ValidationMatrix hasInference={Boolean(latestDiagnosis)} validations={validations} />
           {latestDiagnosis ? <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate/`)} method="post" className="grid gap-2"><input type="hidden" name="csrf_token" value={csrf} /><input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} /><select name="decision" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2"><option value="aprovado">Aprovar</option><option value="ajustar">Editar</option><option value="bloquear">Rejeitar</option></select><textarea name="note" placeholder="Comentários do responsável" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 min-h-28" /><button type="submit" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Validar decisão</button></form> : null}
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-slate-800 px-3 py-3"><div className="font-medium text-white">{v.decision}</div><div className="text-xs text-slate-500">{v.validated_at}</div><div className="mt-2 text-slate-300">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-slate-400">Nenhuma validação ainda.</div>}</div></div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Versões da entrega</div><div className="mt-3 space-y-2 text-sm">{versions.length ? versions.map((v) => <div key={v.id} className="rounded-xl border border-slate-800 px-3 py-3"><div className="font-medium text-white">Versão {v.version_no}</div><div className="text-xs text-slate-500">{v.generated_at}</div></div>) : <div className="text-slate-400">Nenhuma versão consolidada ainda.</div>}</div></div>
         </RightRail>
       </div>
     </DiagShell>
