@@ -14,7 +14,7 @@ import { buildWorkflowChecklist, DIAG_BASE_KINDS } from "@/lib/diag-workflow";
 
 type UploadPreviewPayload = {
   notes?: string;
-  parser_meta?: { quality?: number };
+  parser_meta?: { quality?: string; warnings?: string[] };
 };
 
 const kinds = [
@@ -52,7 +52,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Upload realizado.</div> : null}
-          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
+          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error === 'upload_validation' ? 'A base enviada não atendeu às regras mínimas do tipo selecionado.' : query.error}</div> : null}
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Bases obrigatórias</div>
@@ -95,7 +95,8 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
                   <div key={entry.id} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
                     <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{entry.business_date}</div>
                     <div className="mt-2 font-medium text-white">{String(payload.notes || "Upload histórico")}</div>
-                    <div className="mt-2 text-slate-400">Confiança do dado: {Math.min(95, 55 + Number(payload.parser_meta?.quality || 0) * 10)}%</div>
+                    <div className="mt-2 text-slate-400">Qualidade do parser: {String(payload.parser_meta?.quality || 'n/a')}</div>
+                    {payload.parser_meta?.warnings?.length ? <div className="mt-2 text-xs text-amber-300">⚠ {payload.parser_meta.warnings[0]}</div> : null}
                   </div>
                 );
               })}

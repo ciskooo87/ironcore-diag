@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const KIND_GUIDANCE: Record<string, string[]> = {
+  historico_faturamento: ["Esperado: coluna de faturamento/receita/vendas.", "A base deve trazer valor financeiro reconhecível."],
+  historico_contas_receber: ["Esperado: contas a receber/recebíveis.", "Idealmente com saldo consolidado ou carteira."],
+  historico_contas_pagar: ["Esperado: contas a pagar/fornecedores.", "Idealmente com saldo ou total por obrigação."],
+  historico_endividamento_bancos: ["Ideal: tipo/projeto/modalidade/vencido/a_vencer/total.", "Evite misturar linhas FIDC nesta base."],
+  historico_endividamento_fidc: ["Ideal: tipo/projeto/modalidade/vencido/a_vencer/total.", "Evite misturar linhas bancárias nesta base."],
+};
 
 export function UploadHistoryForm({ action, kind, label, defaultDate }: { action: string; kind: string; label: string; defaultDate: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const guidance = useMemo(() => KIND_GUIDANCE[kind] || [], [kind]);
 
   return (
     <form
@@ -41,6 +50,9 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
           <div className="mt-1 font-medium text-white">{label}</div>
         </div>
         <div className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">{label}</div>
+      </div>
+      <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-3 text-xs text-slate-400">
+        {guidance.map((item) => <div key={item}>• {item}</div>)}
       </div>
       <div className="mt-4 grid gap-2">
         <label className="grid gap-1">

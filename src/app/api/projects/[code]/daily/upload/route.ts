@@ -5,7 +5,7 @@ import { canAccessProject } from "@/lib/permissions";
 import { getUserByEmail } from "@/lib/users";
 import { insertDailyEntry } from "@/lib/daily";
 import { dbQuery } from "@/lib/db";
-import { parseUploadedFile } from "@/lib/upload";
+import { parseUploadedFile, validateParsedUpload } from "@/lib/upload";
 import { diffDaysFromSaoPaulo } from "@/lib/time";
 import { publicUrl } from "@/lib/request-url";
 
@@ -37,8 +37,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
 
   try {
     const parsed = await parseUploadedFile(file);
+    const validation = validateParsedUpload(uploadKind, parsed);
     if (parsed.quality === "weak" && parsed.debt_rows.length === 0 && parsed.faturamento === 0 && parsed.contas_receber === 0 && parsed.contas_pagar === 0 && parsed.extrato_bancario === 0 && parsed.duplicatas === 0) {
       return NextResponse.redirect(publicUrl(req, `/projetos/${code}/upload-historico/?error=upload_low_signal`));
+    }
+    if (validation.errors.length) {
+      return NextResponse.redirect(publicUrl(req, `/projetos/${code}/upload-historico/?error=upload_validation`));
     }
     const payload = {
       faturamento: parsed.faturamento,
@@ -47,7 +51,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
       extrato_bancario: parsed.extrato_bancario,
       duplicatas: parsed.duplicatas,
       debt_rows: parsed.debt_rows,
-      parser_meta: { quality: parsed.quality, matched_fields: parsed.matchedFields, unknown_columns: parsed.unknownColumns },
+      parser_meta: { quality: parsed.quality, matched_fields: parsed.matchedFields, unknown_columns: parsed.unknownColumns, warnings: validation.warnings },
       notes: `${notes} | upload_kind:${uploadKind} arquivo:${file.name} linhas:${parsed.lines}`.trim(),
     };
     const dbUser = await getUserByEmail(user.email);

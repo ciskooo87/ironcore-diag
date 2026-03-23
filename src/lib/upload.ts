@@ -23,9 +23,10 @@ type ParsedUpload = {
   quality: "ok" | "partial" | "weak";
   matchedFields: string[];
   unknownColumns: string[];
+  warnings: string[];
 };
 
-const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows"> | null> = {
+const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows" | "warnings"> | null> = {
   faturamento: "faturamento",
   receita: "faturamento",
   vendas: "faturamento",
@@ -43,7 +44,7 @@ const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matche
   títulos: "duplicatas",
 };
 
-const PDF_HINTS: Record<keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows">, string[]> = {
+const PDF_HINTS: Record<keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows" | "warnings">, string[]> = {
   faturamento: ["faturamento", "receita", "vendas", "valor faturado"],
   contas_receber: ["contas a receber", "a receber", "recebiveis", "recebíveis"],
   contas_pagar: ["contas a pagar", "a pagar", "fornecedores", "pagamentos"],
@@ -71,12 +72,7 @@ function toNum(v: unknown) {
 }
 
 function parseBrMoney(input: string): number | null {
-  const cleaned = input
-    .replace(/R\$/gi, "")
-    .replace(/\s+/g, "")
-    .replace(/\./g, "")
-    .replace(/,/g, ".")
-    .replace(/[^0-9.-]/g, "");
+  const cleaned = input.replace(/R\$/gi, "").replace(/\s+/g, "").replace(/\./g, "").replace(/,/g, ".").replace(/[^0-9.-]/g, "");
   if (!cleaned) return null;
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : null;
@@ -95,6 +91,8 @@ function extractMonetaryCandidates(line: string): number[] {
 function finalize(acc: ParsedUpload): ParsedUpload {
   const score = acc.matchedFields.length + (acc.debt_rows.length ? 2 : 0);
   acc.quality = score >= 3 ? "ok" : score >= 1 ? "partial" : "weak";
+  if (acc.debt_rows.length === 0 && acc.matchedFields.length === 0) acc.warnings.push("Nenhuma coluna financeira ou linha de dívida foi reconhecida.");
+  if (acc.unknownColumns.length > 8) acc.warnings.push("Muitas colunas não reconhecidas; revisar layout da planilha.");
   return acc;
 }
 
@@ -128,6 +126,7 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
     quality: "weak",
     matchedFields: [],
     unknownColumns: [],
+    warnings: [],
   };
   const matched = new Set<string>();
   const unknown = new Set<string>();
@@ -154,14 +153,14 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
   const result = await pdf(buf);
   const text = result.text || "";
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  const acc: ParsedUpload = { faturamento: 0, contas_receber: 0, contas_pagar: 0, extrato_bancario: 0, duplicatas: 0, debt_rows: [], lines: lines.length, quality: "weak", matchedFields: [], unknownColumns: [] };
+  const acc: ParsedUpload = { faturamento: 0, contas_receber: 0, contas_pagar: 0, extrato_bancario: 0, duplicatas: 0, debt_rows: [], lines: lines.length, quality: "weak", matchedFields: [], unknownColumns: [], warnings: [] };
   const matched = new Set<string>();
   for (const line of lines) {
     const lower = line.toLowerCase();
     const values = extractMonetaryCandidates(line);
     if (values.length === 0) continue;
     let localMatched = false;
-    for (const [field, hints] of Object.entries(PDF_HINTS) as Array<[keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows">, string[]]>) {
+    for (const [field, hints] of Object.entries(PDF_HINTS) as Array<[keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows" | "warnings">, string[]]>) {
       if (hints.some((h) => lower.includes(h))) {
         acc[field] += values[values.length - 1] || 0;
         matched.add(field);
@@ -183,6 +182,7 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
     acc.extrato_bancario = sum;
   }
   acc.matchedFields = Array.from(matched);
+  if (!acc.matchedFields.length) acc.warnings.push("PDF sem pistas suficientes para leitura financeira confiável.");
   return finalize(acc);
 }
 
@@ -223,6 +223,25 @@ export async function parseUploadedFile(file: File) {
   if (name.endsWith(".pdf")) return fromPdfBuffer(buf);
   const rows = await rowsFromExcel(buf);
   return fromRows(rows);
+}
+
+export function validateParsedUpload(kind: string, parsed: ParsedUpload) {
+  const errors: string[] = [];
+  const warnings = [...parsed.warnings];
+
+  if (kind === "historico_faturamento" && parsed.faturamento <= 0) errors.push("Base de faturamento sem valor reconhecido.");
+  if (kind === "historico_contas_receber" && parsed.contas_receber <= 0) errors.push("Base de CAR sem valor reconhecido.");
+  if (kind === "historico_contas_pagar" && parsed.contas_pagar <= 0) errors.push("Base de CAP sem valor reconhecido.");
+  if (kind === "historico_endividamento_bancos") {
+    if (parsed.debt_rows.filter((row) => row.type === "bancario").length === 0 && parsed.contas_pagar <= 0 && parsed.duplicatas <= 0) errors.push("Base bancária sem dívida reconhecida.");
+    if (parsed.debt_rows.some((row) => row.type === "fidc")) warnings.push("A base bancária contém linhas classificadas como FIDC; revisar arquivo.");
+  }
+  if (kind === "historico_endividamento_fidc") {
+    if (parsed.debt_rows.filter((row) => row.type === "fidc").length === 0 && parsed.contas_receber <= 0 && parsed.extrato_bancario <= 0) errors.push("Base FIDC sem dívida reconhecida.");
+    if (parsed.debt_rows.some((row) => row.type === "bancario")) warnings.push("A base FIDC contém linhas classificadas como bancário; revisar arquivo.");
+  }
+
+  return { errors, warnings };
 }
 
 export { ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE_BYTES };
