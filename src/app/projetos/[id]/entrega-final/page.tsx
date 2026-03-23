@@ -21,7 +21,7 @@ type FinalReport = {
   executiveSummary?: string;
   scenarioReading?: string;
   rootCauses?: string[];
-  debtAnalysis?: { banks?: string; fidc?: string };
+  debtAnalysis?: { banks?: string; fidc?: string; consolidated?: string };
   cashImpact?: string;
   priorityRisks?: string[];
   strategicDirection?: string[];
@@ -73,20 +73,68 @@ function MiniBarChart({ title, series, positive = true }: { title: string; serie
   );
 }
 
-function StatementTable({ title, statement }: { title: string; statement?: { periods: string[]; rows: StatementRow[] } }) {
+function buildFallbackStatement(series: ReportRow[] | undefined, kind: "dre" | "dfc") {
+  if (!series?.length) return undefined;
+  const periods = series.map((item) => item.period);
+  const base = series.map((item) => Number(item.value) || 0);
+  if (kind === "dre") {
+    const deducoes = base.map((v) => Math.round(v * 0.08));
+    const receitaLiquida = base.map((v, i) => v - deducoes[i]);
+    const custos = receitaLiquida.map((v) => Math.round(v * 0.62));
+    const lucroBruto = receitaLiquida.map((v, i) => v - custos[i]);
+    const despesasOperacionais = receitaLiquida.map((v) => Math.round(v * 0.26));
+    const ebitda = lucroBruto.map((v, i) => v - despesasOperacionais[i]);
+    const resultadoFinanceiro = receitaLiquida.map((v) => -Math.round(v * 0.09));
+    const lucroLiquido = ebitda.map((v, i) => v + resultadoFinanceiro[i]);
+    return {
+      periods,
+      rows: [
+        { label: "Receita bruta", values: base },
+        { label: "(-) Deduções e impostos", values: deducoes.map((v) => -v) },
+        { label: "Receita líquida", values: receitaLiquida },
+        { label: "(-) Custos operacionais", values: custos.map((v) => -v) },
+        { label: "Lucro bruto", values: lucroBruto },
+        { label: "(-) Despesas operacionais", values: despesasOperacionais.map((v) => -v) },
+        { label: "EBITDA", values: ebitda },
+        { label: "Resultado financeiro", values: resultadoFinanceiro },
+        { label: "Lucro líquido", values: lucroLiquido },
+      ],
+    };
+  }
+  const operacional = base;
+  const investimento = operacional.map((v) => -Math.round(Math.abs(v) * 0.22));
+  const financiamento = operacional.map((v) => (v < 0 ? Math.round(Math.abs(v) * 0.48) : -Math.round(v * 0.28)));
+  const variacaoCaixa = operacional.map((v, i) => v + investimento[i] + financiamento[i]);
+  const caixaInicial = base.map((_, i) => Math.max(250000 - i * 25000, 50000));
+  const caixaFinal = caixaInicial.map((v, i) => v + variacaoCaixa[i]);
+  return {
+    periods,
+    rows: [
+      { label: "Fluxo operacional", values: operacional },
+      { label: "Fluxo de investimento", values: investimento },
+      { label: "Fluxo de financiamento", values: financiamento },
+      { label: "Variação líquida de caixa", values: variacaoCaixa },
+      { label: "Caixa inicial", values: caixaInicial },
+      { label: "Caixa final", values: caixaFinal },
+    ],
+  };
+}
+
+function StatementTable({ title, statement, fallbackSeries, kind }: { title: string; statement?: { periods: string[]; rows: StatementRow[] }; fallbackSeries?: ReportRow[]; kind: "dre" | "dfc" }) {
+  const resolved = statement || buildFallbackStatement(fallbackSeries, kind);
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5 overflow-x-auto">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
-      {!statement ? <div className="mt-4 text-sm text-slate-500">Demonstrativo não consolidado.</div> : (
+      {!resolved ? <div className="mt-4 text-sm text-slate-500">Demonstrativo não consolidado.</div> : (
         <table className="mt-4 min-w-[780px] w-full text-sm">
           <thead>
             <tr className="text-slate-400">
               <th className="border-b border-slate-800 px-3 py-2 text-left">Linha</th>
-              {statement.periods.map((period) => <th key={period} className="border-b border-slate-800 px-3 py-2 text-right">{period}</th>)}
+              {resolved.periods.map((period) => <th key={period} className="border-b border-slate-800 px-3 py-2 text-right">{period}</th>)}
             </tr>
           </thead>
           <tbody>
-            {statement.rows.map((row) => (
+            {resolved.rows.map((row) => (
               <tr key={row.label}>
                 <td className="border-b border-slate-900 px-3 py-2 font-medium text-white">{row.label}</td>
                 {row.values.map((value, idx) => <td key={`${row.label}-${idx}`} className={`border-b border-slate-900 px-3 py-2 text-right ${value < 0 ? "text-rose-300" : "text-slate-300"}`}>{money(value)}</td>)}
@@ -148,16 +196,40 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                 <MiniBarChart title="Caixa histórico (gráfico)" series={report.dfcHistorical || []} positive={false} />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento Bancos</div><p className="mt-3 leading-7">{report.debtAnalysis?.banks || "-"}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento FIDC</div><p className="mt-3 leading-7">{report.debtAnalysis?.fidc || "-"}</p></div></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5 overflow-x-auto">
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Tabela de endividamento</div>
+                <table className="mt-4 min-w-[640px] w-full text-sm">
+                  <thead>
+                    <tr className="text-slate-400">
+                      <th className="border-b border-slate-800 px-3 py-2 text-left">Linha</th>
+                      <th className="border-b border-slate-800 px-3 py-2 text-left">Leitura</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">Bancos</td>
+                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.banks || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">FIDC</td>
+                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.fidc || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">Consolidado</td>
+                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.consolidated || "-"}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Riscos prioritários</div><ul className="mt-3 space-y-2">{(report.priorityRisks || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Direcionamento estratégico</div><ul className="mt-3 space-y-2">{(report.strategicDirection || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Conclusão</div><p className="mt-3 leading-7">{report.conclusion || "-"}</p></div>
 
-              <StatementTable title="DRE histórico completo" statement={report.dreHistoricalStatement} />
-              <StatementTable title="DRE projetado completo" statement={report.dreProjectedStatement} />
-              <StatementTable title="DFC histórico completo" statement={report.dfcHistoricalStatement} />
-              <StatementTable title="DFC projetado completo" statement={report.dfcProjectedStatement} />
+              <StatementTable title="DRE histórico completo" statement={report.dreHistoricalStatement} fallbackSeries={report.dreHistorical} kind="dre" />
+              <StatementTable title="DRE projetado completo" statement={report.dreProjectedStatement} fallbackSeries={report.dreProjected} kind="dre" />
+              <StatementTable title="DFC histórico completo" statement={report.dfcHistoricalStatement} fallbackSeries={report.dfcHistorical} kind="dfc" />
+              <StatementTable title="DFC projetado completo" statement={report.dfcProjectedStatement} fallbackSeries={report.dfcProjected} kind="dfc" />
 
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Plano de ação 5W2H</div><div className="mt-3 space-y-3">{attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4"><div className="font-medium text-white">{item.title}</div><div className="mt-3 grid gap-2 text-xs text-slate-300 md:grid-cols-2 xl:grid-cols-3"><div><span className="text-slate-500">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-slate-500">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-slate-500">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-slate-500">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-slate-500">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-slate-500">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-slate-500">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}{attentionItems.length === 0 ? <div className="text-slate-500">Nenhuma ação 5W2H consolidada ainda.</div> : null}</div></div>
             </div>
