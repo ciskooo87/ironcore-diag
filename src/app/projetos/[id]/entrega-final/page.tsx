@@ -34,6 +34,7 @@ type FinalReport = {
   dreProjectedStatement?: { periods: string[]; rows: StatementRow[] };
   dfcHistoricalStatement?: { periods: string[]; rows: StatementRow[] };
   dfcProjectedStatement?: { periods: string[]; rows: StatementRow[] };
+  projectedCashflowStatement?: { periods: string[]; rows: StatementRow[] };
   kpis?: { label: string; value: string; tone: "cyan" | "emerald" | "amber" | "rose" }[];
 };
 
@@ -230,6 +231,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
               <StatementTable title="DRE projetado completo" statement={report.dreProjectedStatement} fallbackSeries={report.dreProjected} kind="dre" />
               <StatementTable title="DFC histórico completo" statement={report.dfcHistoricalStatement} fallbackSeries={report.dfcHistorical} kind="dfc" />
               <StatementTable title="DFC projetado completo" statement={report.dfcProjectedStatement} fallbackSeries={report.dfcProjected} kind="dfc" />
+              <StatementTable title="Fluxo de caixa projetado" statement={report.projectedCashflowStatement} fallbackSeries={report.dfcProjected} kind="dfc" />
 
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Plano de ação 5W2H</div><div className="mt-3 space-y-3">{attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4"><div className="font-medium text-white">{item.title}</div><div className="mt-3 grid gap-2 text-xs text-slate-300 md:grid-cols-2 xl:grid-cols-3"><div><span className="text-slate-500">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-slate-500">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-slate-500">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-slate-500">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-slate-500">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-slate-500">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-slate-500">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}{attentionItems.length === 0 ? <div className="text-slate-500">Nenhuma ação 5W2H consolidada ainda.</div> : null}</div></div>
             </div>

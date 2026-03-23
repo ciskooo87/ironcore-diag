@@ -21,6 +21,7 @@ type ReportBlock = {
   dreProjectedStatement: { periods: string[]; rows: StatementRow[] };
   dfcHistoricalStatement: { periods: string[]; rows: StatementRow[] };
   dfcProjectedStatement: { periods: string[]; rows: StatementRow[] };
+  projectedCashflowStatement: { periods: string[]; rows: StatementRow[] };
   kpis: { label: string; value: string; tone: "cyan" | "emerald" | "amber" | "rose" }[];
 };
 
@@ -90,6 +91,30 @@ function statementFromCashflow(series: SeriesPoint[], pressure: number) {
   };
 }
 
+function projectedCashflowModel(series: SeriesPoint[]) {
+  const periods = series.map((item) => item.period);
+  const entradasOperacionais = series.map((item) => Math.max(Math.round(Math.abs(item.value) * 1.45), 90000));
+  const saidasOperacionais = entradasOperacionais.map((v) => -Math.round(v * 0.74));
+  const servicoDivida = entradasOperacionais.map((v) => -Math.round(v * 0.18));
+  const investimentos = entradasOperacionais.map((v) => -Math.round(v * 0.06));
+  const caixaLivre = entradasOperacionais.map((v, i) => v + saidasOperacionais[i] + servicoDivida[i] + investimentos[i]);
+  const saldoInicial = periods.map((_, i) => Math.max(180000 + i * 25000, 50000));
+  const saldoFinal = saldoInicial.map((v, i) => v + caixaLivre[i]);
+
+  return {
+    periods,
+    rows: [
+      { label: "Entradas operacionais", values: entradasOperacionais },
+      { label: "(-) Saídas operacionais", values: saidasOperacionais },
+      { label: "(-) Serviço da dívida", values: servicoDivida },
+      { label: "(-) Investimentos", values: investimentos },
+      { label: "Caixa livre do período", values: caixaLivre },
+      { label: "Saldo inicial de caixa", values: saldoInicial },
+      { label: "Saldo final de caixa", values: saldoFinal },
+    ],
+  };
+}
+
 export async function buildFinalExecutiveReport(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
@@ -147,6 +172,7 @@ export async function buildFinalExecutiveReport(project: Project) {
     dreProjectedStatement: statementFromRevenue(dreProjected, histMargin + 0.05),
     dfcHistoricalStatement: statementFromCashflow(dfcHistorical, pressure),
     dfcProjectedStatement: statementFromCashflow(dfcProjected, pressure),
+    projectedCashflowStatement: projectedCashflowModel(dfcProjected),
     kpis: [
       { label: "Receita histórica consolidada", value: money(aggregate.totals.faturamento), tone: "cyan" },
       { label: "Pressão CAP x CAR", value: money(pressure), tone: pressure > 0 ? "rose" : "emerald" },
