@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth";
+import { getProjectByCode } from "@/lib/projects";
+import { canAccessProject } from "@/lib/permissions";
+import { buildExecutiveWorkbook } from "@/lib/export-workbook";
+
+type FinalDiagnosisPayload = {
+  score?: number;
+  narrative?: string;
+  executiveReport?: Record<string, unknown>;
+  actions5w2h?: Array<Record<string, unknown>>;
+};
+
+export async function GET(_req: Request, ctx: { params: Promise<{ code: string }> }) {
+  const { code } = await ctx.params;
+  const user = await getSessionUser();
+  const project = await getProjectByCode(code);
+  if (!user || !project) return new NextResponse("forbidden", { status: 403 });
+  const allowed = await canAccessProject(user, project.id);
+  if (!allowed) return new NextResponse("forbidden", { status: 403 });
+
+  const finalDiagnosis = (project.final_diagnosis || {}) as FinalDiagnosisPayload;
+  const report = finalDiagnosis.executiveReport || {};
+  const actions5w2h = Array.isArray(finalDiagnosis.actions5w2h)
+    ? finalDiagnosis.actions5w2h.map((item) => ({
+        what: String(item.what || "-"),
+        why: String(item.why || "-"),
+        who: String(item.who || "-"),
+        when: String(item.when || "-"),
+        where: String(item.where || "-"),
+        how: String(item.how || "-"),
+        howMuch: String(item.howMuch || "-"),
+      }))
+    : [];
+
+  const buffer = buildExecutiveWorkbook({
+    projectName: project.name,
+    client: project.legal_name,
+    score: Number(finalDiagnosis.score || 0) || undefined,
+    report,
+    actions5w2h,
+  });
+
+  return new NextResponse(buffer as BodyInit, {
+    status: 200,
+    headers: {
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": `attachment; filename="diagnostico-${project.code}.xlsx"`,
+    },
+  });
+}
