@@ -11,7 +11,7 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
       action={action}
       method="post"
       encType="multipart/form-data"
-      className="card !p-3 text-sm"
+      className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-sm"
       onSubmit={async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -35,13 +35,30 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
         }
       }}
     >
-      <div className="font-medium mb-2">{label}</div>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Base histórica</div>
+          <div className="mt-1 font-medium text-white">{label}</div>
+        </div>
+        <div className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">{label}</div>
+      </div>
+      <div className="mt-4 grid gap-2">
+        <label className="grid gap-1">
+          <span className="text-xs text-slate-400">Data de referência</span>
+          <input name="business_date" type="date" defaultValue={defaultDate} required className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-slate-200" />
+        </label>
+        <label className="grid gap-1">
+          <span className="text-xs text-slate-400">Arquivo</span>
+          <input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-slate-300" />
+        </label>
+        <label className="grid gap-1">
+          <span className="text-xs text-slate-400">Observações</span>
+          <input name="notes" placeholder="Ex.: base fechada pelo financeiro, versão revisada" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 text-slate-200" />
+        </label>
+      </div>
       <input type="hidden" name="upload_kind" value={kind} />
-      <input name="business_date" type="date" defaultValue={defaultDate} required className="mb-2 bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2" />
-      <input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="mb-2 bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2" />
-      <input name="notes" placeholder="observações" className="mb-2 bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2" />
-      <button type="submit" disabled={submitting} className="badge py-2 px-3 cursor-pointer disabled:opacity-60">{submitting ? "Enviando..." : `Enviar ${label}`}</button>
-      {error ? <div className="alert bad-bg mt-2">Erro: {error}</div> : null}
+      <button type="submit" disabled={submitting} className="mt-4 w-full rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15 disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
+      {error ? <div className="mt-3 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {error}</div> : null}
     </form>
   );
 }

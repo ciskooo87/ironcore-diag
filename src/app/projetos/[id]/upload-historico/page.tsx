@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DiagShell } from "@/components/DiagShell";
 import { RightRail } from "@/components/diag-panels";
+import { StepGuidance, WorkflowChecklist } from "@/components/diag-workflow-ui";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";
@@ -10,6 +11,11 @@ import { todayInSaoPauloISO } from "@/lib/time";
 import { UploadHistoryForm } from "@/components/UploadHistoryForm";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist, DIAG_BASE_KINDS } from "@/lib/diag-workflow";
+
+type UploadPreviewPayload = {
+  notes?: string;
+  parser_meta?: { quality?: number };
+};
 
 const kinds = [
   ["historico_faturamento", "Faturamento"],
@@ -36,7 +42,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
     <DiagShell
       user={user}
       title="Upload das bases históricas"
-      subtitle="Aqui entram as 5 bases obrigatórias do diagnóstico: faturamento, CAR, CAP, endividamento bancos e endividamento FIDC. Sem isso, o fluxo não fecha do jeito certo."
+      subtitle="Suba as cinco bases obrigatórias do diagnóstico: faturamento, CAR, CAP, endividamento bancos e endividamento FIDC. Sem isso, o fluxo não fecha com segurança."
       active="inputs"
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
@@ -62,6 +68,9 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Cobertura</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Checklist das bases históricas</h2>
+            <div className="mt-4">
+              <WorkflowChecklist items={workflow.checklist.slice(0, 3)} />
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
               {kinds.map(([kind, label]) => {
                 const done = !workflow.missingKinds.includes(kind);
@@ -77,17 +86,20 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           </section>
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Preview estruturado</div>
-            <h2 className="mt-2 text-xl font-semibold text-white">Últimos uploads recebidos</h2>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Últimos uploads</div>
+            <h2 className="mt-2 text-xl font-semibold text-white">Preview das bases recebidas</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
-              {uploads.slice(0, 6).map((entry) => (
-                <div key={entry.id} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-                  <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{entry.business_date}</div>
-                  <div className="mt-2 font-medium text-white">{String((entry.payload as any)?.notes || "Upload histórico")}</div>
-                  <div className="mt-2 text-slate-400">Confiança do dado: {Math.min(95, 55 + Number((entry.payload as any)?.parser_meta?.quality || 0) * 10)}%</div>
-                </div>
-              ))}
-              {uploads.length === 0 ? <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-slate-400">Nenhum input enviado ainda.</div> : null}
+              {uploads.slice(0, 6).map((entry) => {
+                const payload = ((entry.payload || {}) as UploadPreviewPayload);
+                return (
+                  <div key={entry.id} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{entry.business_date}</div>
+                    <div className="mt-2 font-medium text-white">{String(payload.notes || "Upload histórico")}</div>
+                    <div className="mt-2 text-slate-400">Confiança do dado: {Math.min(95, 55 + Number(payload.parser_meta?.quality || 0) * 10)}%</div>
+                  </div>
+                );
+              })}
+              {uploads.length === 0 ? <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-slate-400">Nenhuma base enviada ainda.</div> : null}
             </div>
           </section>
         </div>
@@ -96,7 +108,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Score de cobertura</div>
             <div className="mt-2 text-3xl font-semibold text-white">{workflow.progressPercent}%</div>
-            <div className="mt-2 text-sm text-slate-400">Mede o quanto o projeto já percorreu do workflow completo.</div>
+            <div className="mt-2 text-sm text-slate-400">Mede o quanto o projeto já percorreu da jornada completa do diagnóstico.</div>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Faltas críticas</div>
@@ -104,6 +116,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
               {workflow.missingKinds.length ? workflow.missingKinds.map((kind) => <div key={kind} className="rounded-xl border border-slate-800 px-3 py-2">{kind}</div>) : <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-emerald-100">Todas as bases obrigatórias foram recebidas.</div>}
             </div>
           </div>
+          <StepGuidance title="O que vem depois" description="Com as bases históricas recebidas, o próximo passo é registrar o relato do projeto. É ele que adiciona contexto humano à leitura financeira e prepara a normatização." nextHref={`/projetos/${id}/contexto/`} nextLabel="Ir para relato do projeto" />
         </RightRail>
       </div>
     </DiagShell>
