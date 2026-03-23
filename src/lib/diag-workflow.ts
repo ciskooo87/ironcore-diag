@@ -78,6 +78,13 @@ export async function buildWorkflowChecklist(project: Project) {
     { key: "entrega_final", label: "Documento final consolidado", done: Boolean(finalDiagnosis.executiveReport), detail: finalDiagnosis.executiveReport ? "Tela e documento preparados para exportação." : undefined },
   ];
 
+  const parserQualityQ = await dbQuery<{ payload: Record<string, unknown> }>(
+    `select payload from daily_entries where project_id=$1 and source_type='upload' and coalesce(payload->>'notes','') ilike '%upload_kind:historico_%'`,
+    [project.id]
+  ).catch(() => ({ rows: [] as any[] }));
+  const parserQualities = parserQualityQ.rows.map((row) => String((row.payload?.parser_meta as any)?.quality || "weak"));
+  const weakUploads = parserQualities.filter((q) => q === "weak").length;
+
   return {
     aggregate,
     missingKinds,
@@ -86,7 +93,10 @@ export async function buildWorkflowChecklist(project: Project) {
     checklist,
     progressPercent: Math.round((checklist.filter((item) => item.done).length / checklist.length) * 100),
     readyForAi: missingKinds.length === 0 && Boolean(project.historical_context?.trim()) && project.normalization_status === "confirmado",
+    readyForNormalization: missingKinds.length === 0 && Boolean(project.historical_context?.trim()),
+    readyForConference: project.normalization_status === "gerado" && Boolean(normalized?.financials),
     readyForFinalDelivery: Boolean(latestDiagnosis) && validations > 0,
+    weakUploads,
   };
 }
 
@@ -94,6 +104,11 @@ export async function buildNormalization(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
   const baseKinds = Object.keys(aggregate.byKind || {});
+  const missingKinds = DIAG_BASE_KINDS.filter((kind) => !baseKinds.includes(kind));
+  const context = String((project as any).historical_context || "").trim();
+  if (missingKinds.length) throw new Error(`normalization_missing_inputs:${missingKinds.join(",")}`);
+  if (!context) throw new Error("normalization_missing_context");
+
   const normalized = {
     project: {
       code: project.code,
@@ -103,13 +118,13 @@ export async function buildNormalization(project: Project) {
       segment: project.segment,
       partners: project.partners || [],
       summary: project.project_summary || "",
-      context: (project as any).historical_context || "",
+      context,
     },
     uploads: {
       total: aggregate.totalUploads,
       latestBusinessDate: aggregate.latestBusinessDate,
       coverageKinds: baseKinds,
-      missingKinds: DIAG_BASE_KINDS.filter((kind) => !baseKinds.includes(kind)),
+      missingKinds,
     },
     financials: {
       faturamento: aggregate.totals.faturamento,
@@ -119,9 +134,14 @@ export async function buildNormalization(project: Project) {
       endividamentoFidc: aggregate.totals.endividamentoFidc,
       pressure,
     },
+    debt: {
+      rows: aggregate.debtRows,
+      totalRows: aggregate.debtRows.length,
+      hasAnalyticalDebt: aggregate.debtRows.length > 0,
+    },
     checkpoints: {
-      hasContext: Boolean((project as any).historical_context?.trim()),
-      readyForAi: aggregate.totalUploads > 0 && Boolean((project as any).historical_context?.trim()),
+      hasContext: Boolean(context),
+      readyForAi: missingKinds.length === 0 && Boolean(context),
     },
   };
 
@@ -138,6 +158,7 @@ export async function extractAttentionPoints(project: Project) {
     aggregate.totals.contasPagar > aggregate.totals.contasReceber ? "Pressão de caixa histórica: CAP acima de CAR." : "Sem pressão histórica dominante entre CAR e CAP na consolidação simples.",
     missingKinds.length ? `Cobertura histórica incompleta: faltam ${missingKinds.join(", ")}.` : "Cobertura histórica principal recebida.",
     context ? `Relato do projeto registrado: ${context.slice(0, 220)}` : "Relato histórico ainda não preenchido.",
+    aggregate.debtRows.length ? `Estrutura de dívida analítica disponível com ${aggregate.debtRows.length} linhas consolidadas.` : "Estrutura de dívida ainda sem detalhamento analítico.",
   ];
   await dbQuery(`update projects set ai_attention_points=$2::jsonb, updated_at=now() where id=$1`, [project.id, JSON.stringify(points)]);
   return points;

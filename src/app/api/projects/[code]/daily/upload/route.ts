@@ -37,6 +37,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
 
   try {
     const parsed = await parseUploadedFile(file);
+    if (parsed.quality === "weak" && parsed.debt_rows.length === 0 && parsed.faturamento === 0 && parsed.contas_receber === 0 && parsed.contas_pagar === 0 && parsed.extrato_bancario === 0 && parsed.duplicatas === 0) {
+      return NextResponse.redirect(publicUrl(req, `/projetos/${code}/upload-historico/?error=upload_low_signal`));
+    }
     const payload = {
       faturamento: parsed.faturamento,
       contas_receber: parsed.contas_receber,

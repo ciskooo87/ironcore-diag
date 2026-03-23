@@ -22,6 +22,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
     return NextResponse.redirect(publicUrl(req, `/projetos/${code}/entrega-final/?error=forbidden`));
   }
 
+  const validationsQ = await import('@/lib/db').then(({ dbQuery }) => dbQuery<{ total: string }>(`select count(*)::text as total from historical_diagnosis_validations where project_id=$1`, [project.id]));
+  const validations = Number(validationsQ.rows[0]?.total || 0);
+  if (validations === 0) {
+    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/entrega-final/?error=missing_validation`));
+  }
+
+  const latestDiagnosis = await import('@/lib/historical-diagnosis').then(({ getLatestHistoricalDiagnosis }) => getLatestHistoricalDiagnosis(project.id));
+  if (!latestDiagnosis) {
+    return NextResponse.redirect(publicUrl(req, `/projetos/${code}/entrega-final/?error=missing_ai`));
+  }
+
   const finalDiagnosis = await buildFinalDiagnosis(project);
   const executiveReport = await buildFinalExecutiveReport(project);
   const refreshedProject = (await getProjectByCode(code)) || project;
