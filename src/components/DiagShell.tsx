@@ -38,9 +38,28 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
             })}
           </div>
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {WORKFLOW_STEPS.map((step) => (
-              <div key={step.key} className={`whitespace-nowrap rounded-xl border px-3 py-2 text-xs ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400"}`}>{step.label}</div>
-            ))}
+            {WORKFLOW_STEPS.map((step) => {
+              const stepHref = project ? (() => {
+                switch (step.key) {
+                  case "novo_projeto": return "/projetos/novo/";
+                  case "cadastro": return `${projectBase}/cadastro/`;
+                  case "upload_historico": return `${projectBase}/upload-historico/`;
+                  case "relato_historico": return `${projectBase}/contexto/`;
+                  case "normalizacao": return `${projectBase}/normalizacao/`;
+                  case "conferencia_normalizacao": return `${projectBase}/conferencia/`;
+                  case "montagem_diagnostico":
+                  case "analise_ia": return `${projectBase}/diagnostico/`;
+                  case "validacao_humana":
+                  case "entrega_final": return `${projectBase}/entrega-final/`;
+                  default: return `${projectBase}/`;
+                }
+              })() : "/projetos/novo/";
+              return (
+                <Link key={step.key} href={stepHref} className={`whitespace-nowrap rounded-xl border px-3 py-2 text-xs ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
+                  {step.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -67,11 +86,28 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
             <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/30 p-3">
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Pipeline</div>
               <div className="mt-3 space-y-2 text-xs">
-                {WORKFLOW_STEPS.map((step) => (
-                  <div key={step.key} className={`rounded-xl border px-3 py-2 ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400"}`}>
-                    {step.label}
-                  </div>
-                ))}
+                {WORKFLOW_STEPS.map((step) => {
+                  const stepHref = project ? (() => {
+                    switch (step.key) {
+                      case "novo_projeto": return "/projetos/novo/";
+                      case "cadastro": return `${projectBase}/cadastro/`;
+                      case "upload_historico": return `${projectBase}/upload-historico/`;
+                      case "relato_historico": return `${projectBase}/contexto/`;
+                      case "normalizacao": return `${projectBase}/normalizacao/`;
+                      case "conferencia_normalizacao": return `${projectBase}/conferencia/`;
+                      case "montagem_diagnostico":
+                      case "analise_ia": return `${projectBase}/diagnostico/`;
+                      case "validacao_humana":
+                      case "entrega_final": return `${projectBase}/entrega-final/`;
+                      default: return `${projectBase}/`;
+                    }
+                  })() : "/projetos/novo/";
+                  return (
+                    <Link key={step.key} href={stepHref} className={`block rounded-xl border px-3 py-2 ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
+                      {step.label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </aside>
