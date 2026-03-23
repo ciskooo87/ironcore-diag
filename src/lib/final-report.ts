@@ -31,28 +31,26 @@ function money(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
-function buildSeries(base: number, months: number, monthlyChange: number): SeriesPoint[] {
-  const out: SeriesPoint[] = [];
-  let value = base;
+function monthLabel(offset: number) {
   const now = new Date(2026, 2, 1);
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    out.push({ period: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, value: Math.round(value) });
-    value += monthlyChange;
-  }
-  return out;
+  const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function statementFromRevenue(series: SeriesPoint[], margin: number) {
-  const periods = series.map((item) => item.period);
-  const receita = series.map((item) => item.value);
+function buildSeriesFromValues(values: number[], startOffset: number) {
+  return values.map((value, idx) => ({ period: monthLabel(startOffset + idx), value: Math.round(value) }));
+}
+
+function buildDreStatement(revenueSeries: number[], costRate: number, opexRate: number, financeRate: number) {
+  const periods = revenueSeries.map((_, idx) => monthLabel(idx - revenueSeries.length + 1));
+  const receita = revenueSeries.map((v) => Math.round(v));
   const deducoes = receita.map((v) => Math.round(v * 0.08));
   const receitaLiquida = receita.map((v, i) => v - deducoes[i]);
-  const custos = receitaLiquida.map((v) => Math.round(v * 0.62));
+  const custos = receitaLiquida.map((v) => Math.round(v * costRate));
   const lucroBruto = receitaLiquida.map((v, i) => v - custos[i]);
-  const despesasOperacionais = receitaLiquida.map((v) => Math.round(v * (margin < 0 ? 0.31 : 0.24)));
+  const despesasOperacionais = receitaLiquida.map((v) => Math.round(v * opexRate));
   const ebitda = lucroBruto.map((v, i) => v - despesasOperacionais[i]);
-  const resultadoFinanceiro = receitaLiquida.map((v) => -Math.round(v * 0.09));
+  const resultadoFinanceiro = receitaLiquida.map((v) => -Math.round(v * financeRate));
   const lucroLiquido = ebitda.map((v, i) => v + resultadoFinanceiro[i]);
 
   return {
@@ -71,48 +69,31 @@ function statementFromRevenue(series: SeriesPoint[], margin: number) {
   };
 }
 
-function statementFromCashflow(series: SeriesPoint[], pressure: number) {
-  const periods = series.map((item) => item.period);
-  const operacional = series.map((item) => item.value);
-  const investimento = operacional.map((v) => -Math.round(Math.abs(v) * 0.22));
-  const financiamento = operacional.map((v) => (v < 0 ? Math.round(Math.abs(v) * 0.48) : -Math.round(v * 0.28)));
-  const variacaoCaixa = operacional.map((v, i) => v + investimento[i] + financiamento[i]);
-  const caixaInicial = series.map((_, i) => Math.max(250000 - i * Math.round(Math.abs(pressure) / 12), 50000));
-  const caixaFinal = caixaInicial.map((v, i) => v + variacaoCaixa[i]);
-
+function buildCashStatement(baseRevenue: number[], collectionRate: number, paymentRate: number, debtServiceRate: number, investRate: number, openingCashStart: number, startOffset: number) {
+  const periods = baseRevenue.map((_, idx) => monthLabel(startOffset + idx));
+  const entradas = baseRevenue.map((v) => Math.round(v * collectionRate));
+  const saidasOperacionais = baseRevenue.map((v) => -Math.round(v * paymentRate));
+  const servicoDivida = baseRevenue.map((v) => -Math.round(v * debtServiceRate));
+  const investimentos = baseRevenue.map((v) => -Math.round(v * investRate));
+  const variacao = entradas.map((v, i) => v + saidasOperacionais[i] + servicoDivida[i] + investimentos[i]);
+  const caixaInicial: number[] = [];
+  const caixaFinal: number[] = [];
+  let running = openingCashStart;
+  for (const delta of variacao) {
+    caixaInicial.push(Math.round(running));
+    running += delta;
+    caixaFinal.push(Math.round(running));
+  }
   return {
     periods,
     rows: [
-      { label: "Fluxo operacional", values: operacional },
-      { label: "Fluxo de investimento", values: investimento },
-      { label: "Fluxo de financiamento", values: financiamento },
-      { label: "Variação líquida de caixa", values: variacaoCaixa },
-      { label: "Caixa inicial", values: caixaInicial },
-      { label: "Caixa final", values: caixaFinal },
-    ],
-  };
-}
-
-function projectedCashflowModel(series: SeriesPoint[]) {
-  const periods = series.map((item) => item.period);
-  const entradasOperacionais = series.map((item) => Math.max(Math.round(Math.abs(item.value) * 1.45), 90000));
-  const saidasOperacionais = entradasOperacionais.map((v) => -Math.round(v * 0.74));
-  const servicoDivida = entradasOperacionais.map((v) => -Math.round(v * 0.18));
-  const investimentos = entradasOperacionais.map((v) => -Math.round(v * 0.06));
-  const caixaLivre = entradasOperacionais.map((v, i) => v + saidasOperacionais[i] + servicoDivida[i] + investimentos[i]);
-  const saldoInicial = periods.map((_, i) => Math.max(180000 + i * 25000, 50000));
-  const saldoFinal = saldoInicial.map((v, i) => v + caixaLivre[i]);
-
-  return {
-    periods,
-    rows: [
-      { label: "Entradas operacionais", values: entradasOperacionais },
+      { label: "Entradas operacionais", values: entradas },
       { label: "(-) Saídas operacionais", values: saidasOperacionais },
       { label: "(-) Serviço da dívida", values: servicoDivida },
       { label: "(-) Investimentos", values: investimentos },
-      { label: "Caixa livre do período", values: caixaLivre },
-      { label: "Saldo inicial de caixa", values: saldoInicial },
-      { label: "Saldo final de caixa", values: saldoFinal },
+      { label: "Variação líquida de caixa", values: variacao },
+      { label: "Caixa inicial", values: caixaInicial },
+      { label: "Caixa final", values: caixaFinal },
     ],
   };
 }
@@ -129,44 +110,55 @@ export async function buildFinalExecutiveReport(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
   const totalDebt = aggregate.totals.endividamentoBancos + aggregate.totals.endividamentoFidc;
-  const monthlyRevenue = aggregate.totals.faturamento / Math.max(aggregate.byKind.historico_faturamento || 1, 1);
-  const histMargin = Math.max(-0.22, Math.min(0.18, (aggregate.totals.contasReceber - aggregate.totals.contasPagar) / Math.max(aggregate.totals.faturamento, 1)));
+  const faturamentoMensal = aggregate.totals.faturamento / Math.max(aggregate.byKind.historico_faturamento || 1, 1);
+  const debtRatio = totalDebt / Math.max(aggregate.totals.faturamento, 1);
+  const pressureRatio = pressure / Math.max(aggregate.totals.faturamento, 1);
+  const histRevenue = Array.from({ length: 12 }, (_, i) => Math.max(faturamentoMensal * (1 - 0.03 * (11 - i)), faturamentoMensal * 0.55));
+  const projRevenue = Array.from({ length: 6 }, (_, i) => Math.max(faturamentoMensal * (0.92 + 0.03 * i), faturamentoMensal * 0.6));
+  const costRateHist = Math.min(0.78, Math.max(0.52, 0.62 + Math.max(pressureRatio, 0) * 0.6));
+  const opexRateHist = Math.min(0.34, Math.max(0.18, 0.24 + Math.max(debtRatio - 0.4, 0) * 0.08));
+  const financeRateHist = Math.min(0.16, Math.max(0.04, 0.07 + debtRatio * 0.04));
+  const costRateProj = Math.max(0.5, costRateHist - 0.04);
+  const opexRateProj = Math.max(0.17, opexRateHist - 0.03);
+  const financeRateProj = Math.max(0.035, financeRateHist - 0.015);
 
-  const dreHistorical = buildSeries(monthlyRevenue, 12, -Math.abs(monthlyRevenue * 0.05));
-  const dreProjected = buildSeries(Math.max(monthlyRevenue * 0.92, 1), 6, monthlyRevenue * 0.03);
-  const dfcHistorical = buildSeries(-Math.max(pressure / 6, 50000), 12, -15000);
-  const dfcProjected = buildSeries(Math.min(-pressure / 8, -30000), 6, 20000);
+  const dreHist = buildDreStatement(histRevenue, costRateHist, opexRateHist, financeRateHist);
+  const dreProj = buildDreStatement(projRevenue, costRateProj, opexRateProj, financeRateProj);
+  const dfcHist = buildCashStatement(histRevenue, 0.78, 0.83, financeRateHist, 0.05, 280000, -11);
+  const dfcProj = buildCashStatement(projRevenue, 0.86, 0.74, financeRateProj, 0.04, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
+  const projectedCash = buildCashStatement(projRevenue, 0.9, 0.71, financeRateProj, 0.05, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
   const debtTable = buildDebtTable(aggregate.debtRows, aggregate.totals.endividamentoBancos, aggregate.totals.endividamentoFidc);
 
-  const executiveSummary = `A operação apresenta deterioração relevante entre geração operacional, estrutura de capital e liquidez. A receita histórica consolidada não sustenta o serviço da dívida assumida, enquanto a pressão entre CAP e CAR reduz a capacidade de financiamento do giro. O quadro exige resposta imediata em caixa, dívida e disciplina operacional.`;
-  const scenarioReading = `O projeto mostra descasamento entre captação, alocação e retorno. A empresa absorveu obrigações financeiras sem construir geração de caixa proporcional. Isso levou a compressão de atividade, perda de fôlego comercial e aumento da rigidez financeira.`;
+  const overdueDebt = debtTable.reduce((sum, row) => sum + row.overdue, 0);
+  const executiveSummary = `A operação apresenta descasamento material entre geração operacional, pressão de caixa e estrutura de dívida. A receita histórica consolidada indica capacidade limitada para absorver o serviço da dívida e a pressão entre CAP e CAR mantém a liquidez comprimida.`;
+  const scenarioReading = `O diagnóstico mostra três vetores centrais: geração operacional fragilizada, dívida pesada para a escala atual e governança financeira reativa. A empresa não colapsou por ausência de mercado, mas por desalinhamento entre capital, operação e disciplina de caixa.`;
   const rootCauses = [
-    `Estrutura de capital inadequada: dívida total estimada em ${money(totalDebt)} para um patamar de geração insuficiente.`,
-    `Alocação ineficiente de recursos: o capital investido não converteu em break-even nem em tração operacional sustentável.`,
-    `Estrangulamento de caixa: pressão entre CAP e CAR em ${money(pressure)}, comprometendo liquidez e priorização de pagamentos.`,
-    `Governança reativa: decisões financeiras parecem seguir a urgência do caixa, não um plano de estruturação.`
+    `Estrutura de capital desequilibrada: dívida total estimada em ${money(totalDebt)} para uma receita consolidada de ${money(aggregate.totals.faturamento)}.`,
+    `Pressão de capital de giro: CAP supera CAR em ${money(Math.max(pressure, 0))}, comprimindo liquidez e capacidade de priorização.`,
+    `Custo financeiro relevante: o mix entre bancos e FIDC deteriora margem e previsibilidade de caixa.`,
+    `Ritual de gestão insuficiente: o histórico sugere reação ao caixa do dia, não governança antecipatória.`
   ];
   const debtAnalysis = {
-    banks: `Endividamento bancário estimado em ${money(aggregate.totals.endividamentoBancos)}. A leitura indica custo e cronograma pressionando o caixa de curto prazo.`,
-    fidc: `Exposição em FIDC estimada em ${money(aggregate.totals.endividamentoFidc)}. Há sinal de deságio/glosa corroendo margem e previsibilidade de recebimento.`,
-    consolidated: `No consolidado, a dívida está desalinhada da geração atual e amplia o risco de insolvência se não houver reestruturação imediata.`
+    banks: `Dívida bancária consolidada em ${money(aggregate.totals.endividamentoBancos)}. O peso do curto prazo e do custo financeiro aumenta a rigidez operacional.`,
+    fidc: `Exposição em FIDC consolidada em ${money(aggregate.totals.endividamentoFidc)}. O uso recorrente dessa estrutura pressiona margem e reduz flexibilidade.`,
+    consolidated: `No consolidado, a dívida está acima do ponto confortável para a geração atual e exige reestruturação + governança de caixa.`
   };
-  const cashImpact = `A implicação direta é perda de liquidez operacional. Sem alongamento de dívida, contenção de desembolsos e recomposição de receita, o caixa tende a entrar em ruptura progressiva.`;
+  const cashImpact = `O efeito mais imediato aparece no caixa: saldo livre comprimido, baixa tolerância a erro operacional e risco de travamento por vencidos ou serviço da dívida. O vencido consolidado já soma ${money(overdueDebt)}.`;
   const priorityRisks = [
-    "Risco de paralisação operacional parcial por falta de caixa.",
-    "Risco de inadimplência financeira por serviço da dívida incompatível com geração corrente.",
-    "Risco de aprofundamento da queda de receita por operação fragilizada e baixa capacidade de investimento útil.",
-    "Risco de destruição de margem pelo custo combinado de bancos, FIDC e desorganização do giro."
+    `Risco de ruptura de caixa de curto prazo se o vencido (${money(overdueDebt)}) não for tratado rapidamente.`,
+    `Risco de inadimplência financeira pela incompatibilidade entre dívida e geração operacional.`,
+    `Risco de queda adicional de margem enquanto bancos/FIDC seguirem financiando ineficiência estrutural.`,
+    `Risco de deterioração comercial se a operação continuar girando sob estresse permanente de caixa.`
   ];
   const strategicDirection = [
-    "Reestruturar dívida: alongar prazo, buscar carência e revisar custo financeiro.",
-    "Redefinir modelo operacional para priorizar geração imediata de caixa e margem.",
-    "Revisar portfólio de investimentos e desmobilizar ativos/projetos improdutivos.",
-    "Implantar governança financeira rigorosa com rotina de caixa, priorização de pagamentos e ritos executivos semanais."
+    "Alongar e reprecificar dívida para reduzir serviço financeiro de curto prazo.",
+    "Estabelecer rotina diária/semanal de caixa com priorização de pagamentos e cobrança.",
+    "Rever custos operacionais e estrutura para recuperar margem e caixa livre.",
+    "Separar claramente a estratégia de dívida bancária e FIDC com metas de redução por bloco."
   ];
-  const conclusion = `Não se trata de um problema primário de mercado, mas de estruturação e execução. O caso é reversível, porém a janela de resposta é curta. Quanto mais a reorganização financeira e operacional atrasar, maior o risco de evoluir para insolvência ou paralisação total.`;
+  const conclusion = `O caso é recuperável, mas não por inércia. A empresa precisa simultaneamente reorganizar dívida, reduzir pressão no giro e restaurar disciplina operacional. Sem essas três frentes em paralelo, a tendência é aprofundamento da fragilidade.`;
 
-  const report: ReportBlock = {
+  return {
     executiveSummary,
     scenarioReading,
     rootCauses,
@@ -176,22 +168,20 @@ export async function buildFinalExecutiveReport(project: Project) {
     priorityRisks,
     strategicDirection,
     conclusion,
-    dreHistorical,
-    dreProjected,
-    dfcHistorical,
-    dfcProjected,
-    dreHistoricalStatement: statementFromRevenue(dreHistorical, histMargin),
-    dreProjectedStatement: statementFromRevenue(dreProjected, histMargin + 0.05),
-    dfcHistoricalStatement: statementFromCashflow(dfcHistorical, pressure),
-    dfcProjectedStatement: statementFromCashflow(dfcProjected, pressure),
-    projectedCashflowStatement: projectedCashflowModel(dfcProjected),
+    dreHistorical: buildSeriesFromValues(histRevenue, -11),
+    dreProjected: buildSeriesFromValues(projRevenue, 0),
+    dfcHistorical: buildSeriesFromValues(dfcHist.rows[4].values, -11),
+    dfcProjected: buildSeriesFromValues(dfcProj.rows[4].values, 0),
+    dreHistoricalStatement: dreHist,
+    dreProjectedStatement: dreProj,
+    dfcHistoricalStatement: dfcHist,
+    dfcProjectedStatement: dfcProj,
+    projectedCashflowStatement: projectedCash,
     kpis: [
       { label: "Receita histórica consolidada", value: money(aggregate.totals.faturamento), tone: "cyan" },
       { label: "Pressão CAP x CAR", value: money(pressure), tone: pressure > 0 ? "rose" : "emerald" },
-      { label: "Dívida total estimada", value: money(totalDebt), tone: totalDebt > aggregate.totals.faturamento * 0.5 ? "amber" : "emerald" },
-      { label: "Margem histórica estimada", value: `${(histMargin * 100).toFixed(1)}%`, tone: histMargin < 0 ? "rose" : "emerald" },
+      { label: "Dívida total estimada", value: money(totalDebt), tone: debtRatio > 0.6 ? "amber" : "emerald" },
+      { label: "Vencido consolidado", value: money(overdueDebt), tone: overdueDebt > 0 ? "rose" : "emerald" },
     ],
-  };
-
-  return report;
+  } satisfies ReportBlock;
 }
