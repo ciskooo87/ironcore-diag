@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DiagShell } from "@/components/DiagShell";
 import { ExecutiveNarrative, AttentionList, RightRail } from "@/components/diag-panels";
+import { WorkflowChecklist } from "@/components/diag-workflow-ui";
 import { CopilotPanel } from "@/components/CopilotPanel";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
@@ -24,7 +25,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
     <DiagShell
       user={user}
       title="Montagem do diagnóstico e análise IA"
-      subtitle="Depois da conferência, o sistema monta o caso, executa a leitura de IA e prepara a decisão humana."
+      subtitle="Aqui o caso vira leitura executiva: consolidação do histórico, hipótese de causa, pressão de caixa, dívida, risco e direção recomendada."
       active="ia"
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
@@ -42,7 +43,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
               <p>{presentation.narrative}</p>
             </ExecutiveNarrative>
             <ExecutiveNarrative title="Leitura assistida por IA">
-              <p>A IA entra depois da estruturação correta, não antes. O objetivo é apoiar a análise, não inventar história em cima de base incompleta.</p>
+              <p>A IA entra depois da estruturação correta, não antes. O papel dela aqui é acelerar a análise, não inventar conclusão em cima de base incompleta.</p>
               <p>{workflow.latestDiagnosis?.response || "Nenhuma análise IA registrada ainda para este projeto."}</p>
             </ExecutiveNarrative>
           </div>
@@ -52,14 +53,9 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
 
         <RightRail title="Prontidão para validação">
           <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Checklist</div>
-            <div className="mt-3 space-y-2 text-sm text-slate-300">
-              {workflow.checklist.slice(0, 7).map((item) => (
-                <div key={item.key} className={`rounded-xl border px-3 py-2 ${item.done ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-slate-800 bg-slate-950/30 text-slate-300"}`}>
-                  <div className="font-medium">{item.label}</div>
-                  {item.detail ? <div className="mt-1 text-xs opacity-80">{item.detail}</div> : null}
-                </div>
-              ))}
+            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Checklist do fluxo</div>
+            <div className="mt-3">
+              <WorkflowChecklist items={workflow.checklist.slice(0, 7)} compact />
             </div>
           </div>
           <CopilotPanel endpoint={appPath(`/api/projects/${id}/copilot/`)} />
