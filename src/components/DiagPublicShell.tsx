@@ -64,7 +64,7 @@ export function DiagPublicShell({ title, subtitle, children, active = "overview"
                   {subtitle ? <p className="mt-2 max-w-3xl text-sm text-slate-400 md:text-base">{subtitle}</p> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                  <Link href={appPath('/diagnotico/')} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Ver LP</Link>
+                  <Link href={appPath('/')} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Ir para entrada do produto</Link>
                 </div>
               </div>
             </header>
