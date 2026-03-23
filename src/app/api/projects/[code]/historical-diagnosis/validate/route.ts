@@ -29,7 +29,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   const summaryText = buildHistoricalValidationSummary({ projectCode: project.code, decision, note, provider: run?.provider, model: run?.model || undefined, createdAt: run?.created_at, response: run?.response || undefined });
   await dbQuery(`insert into historical_diagnosis_validations(project_id, inference_run_id, decision, note, summary_text, validated_by) values($1,$2,$3,$4,$5,$6)`, [project.id, inferenceRunId, decision, note || null, summaryText, dbUser?.id || null]);
   await dbQuery(`insert into audit_log(project_id, actor_user_id, action, entity, entity_id, after_data) values($1,$2,$3,$4,$5,$6::jsonb)`, [project.id, dbUser?.id || null, 'historical.diagnosis.validate', 'ai_inference_runs', inferenceRunId, JSON.stringify({ decision, note, summaryText })]);
-  await dbQuery(`update projects set workflow_state='validacao_humana', updated_at=now() where id=$1`, [project.id]);
+  await dbQuery(`update projects set workflow_state=case when final_diagnosis_status='gerado' then 'entrega_final' else 'validacao_humana' end, updated_at=now() where id=$1`, [project.id]);
   await logWorkflowEvent({ projectId: project.id, stepKey: "validacao_humana", status: "concluido", payload: { inferenceRunId, decision }, createdBy: dbUser?.id || null });
   return NextResponse.redirect(publicUrl(req, `/projetos/${code}/entrega-final/?saved=historical_validation`));
 }
