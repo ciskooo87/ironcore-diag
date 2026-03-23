@@ -3,6 +3,7 @@ import { DiagShell } from "@/components/DiagShell";
 import { RightRail } from "@/components/diag-panels";
 import { PrintButton } from "@/components/PrintButton";
 import { ValidationMatrix } from "@/components/ValidationMatrix";
+import { StepGuidance, WorkflowChecklist } from "@/components/diag-workflow-ui";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";
@@ -12,6 +13,23 @@ import { ensureCsrfCookie } from "@/lib/csrf";
 import { getLatestHistoricalDiagnosis } from "@/lib/historical-diagnosis";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist } from "@/lib/diag-workflow";
+
+type ReportRow = { period: string; value: string | number };
+type Action5w2h = { what?: string; why?: string; who?: string; when?: string; where?: string; how?: string; howMuch?: string };
+type FinalReport = {
+  executiveSummary?: string;
+  scenarioReading?: string;
+  rootCauses?: string[];
+  debtAnalysis?: { banks?: string; fidc?: string };
+  cashImpact?: string;
+  priorityRisks?: string[];
+  strategicDirection?: string[];
+  conclusion?: string;
+  dreHistorical?: ReportRow[];
+  dreProjected?: ReportRow[];
+  dfcHistorical?: ReportRow[];
+  dfcProjected?: ReportRow[];
+};
 
 export default async function EntregaFinalPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
   const user = await requireUser();
@@ -23,12 +41,74 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
   if (!allowed) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
 
   const validations = await listHistoricalDiagnosisValidations(project.id, 20);
-  const finalDiagnosis = (project.final_diagnosis || {}) as Record<string, any>;
-  const report = (finalDiagnosis.executiveReport || {}) as Record<string, any>;
+  const finalDiagnosis = (project.final_diagnosis || {}) as { executiveReport?: FinalReport };
+  const report = finalDiagnosis.executiveReport || {};
   const csrf = await ensureCsrfCookie();
   const latestDiagnosis = await getLatestHistoricalDiagnosis(project.id);
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
 
-  return <DiagShell user={user} title="Validação humana e entrega final" subtitle="Aqui o diagnóstico fecha do jeito certo: leitura consolidada, decisão humana auditável e entrega final em tela e documento exportável." active="document" project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }} score={presentation.overallScore} status={workflow.readyForFinalDelivery ? "Pronto para entrega final" : "Aguardando validação humana ou consolidação final"} cta={<div className="flex gap-2"><PrintButton /><Link href={appPath(`/api/projects/${id}/pdf/`)} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Exportar PDF/HTML</Link></div>}><div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="space-y-4">{query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Operação concluída.</div> : null}{query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}<section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6"><div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Produto final</div><h2 className="mt-2 text-xl font-semibold text-white">Diagnóstico executivo final</h2><div className="mt-4 space-y-5 text-sm text-slate-300"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Resumo executivo</div><p className="mt-3 leading-7">{report.executiveSummary || presentation.executiveSummary}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Leitura do cenário</div><p className="mt-3 leading-7">{report.scenarioReading || presentation.narrative}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Causas raiz</div><ul className="mt-3 space-y-2">{(report.rootCauses || []).map((item: string) => <li key={item}>• {item}</li>)}</ul></div><div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento Bancos</div><p className="mt-3 leading-7">{report.debtAnalysis?.banks || '-'}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento FIDC</div><p className="mt-3 leading-7">{report.debtAnalysis?.fidc || '-'}</p></div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || '-'}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Riscos prioritários</div><ul className="mt-3 space-y-2">{(report.priorityRisks || []).map((item: string) => <li key={item}>• {item}</li>)}</ul></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Direcionamento estratégico</div><ul className="mt-3 space-y-2">{(report.strategicDirection || []).map((item: string) => <li key={item}>• {item}</li>)}</ul></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Conclusão</div><p className="mt-3 leading-7">{report.conclusion || '-'}</p></div><div className="grid gap-4 xl:grid-cols-2"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">DRE histórico</div><div className="mt-3 space-y-2 text-xs">{(report.dreHistorical || []).map((row: any) => <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1"><span>{row.period}</span><span>{row.value}</span></div>)}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">DRE projetado</div><div className="mt-3 space-y-2 text-xs">{(report.dreProjected || []).map((row: any) => <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1"><span>{row.period}</span><span>{row.value}</span></div>)}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">DFC histórico</div><div className="mt-3 space-y-2 text-xs">{(report.dfcHistorical || []).map((row: any) => <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1"><span>{row.period}</span><span>{row.value}</span></div>)}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">DFC projetado</div><div className="mt-3 space-y-2 text-xs">{(report.dfcProjected || []).map((row: any) => <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1"><span>{row.period}</span><span>{row.value}</span></div>)}</div></div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Plano de ação 5W2H</div><div className="mt-3 space-y-3">{presentation.attention.map((item: any) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4"><div className="font-medium text-white">{item.title}</div><div className="mt-3 grid gap-2 text-xs text-slate-300 md:grid-cols-2 xl:grid-cols-3"><div><span className="text-slate-500">What:</span> {item.action5w2h?.what}</div><div><span className="text-slate-500">Why:</span> {item.action5w2h?.why}</div><div><span className="text-slate-500">Who:</span> {item.action5w2h?.who}</div><div><span className="text-slate-500">When:</span> {item.action5w2h?.when}</div><div><span className="text-slate-500">Where:</span> {item.action5w2h?.where}</div><div><span className="text-slate-500">How:</span> {item.action5w2h?.how}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-slate-500">How much:</span> {item.action5w2h?.howMuch}</div></div></div>)}</div></div></div><div className="mt-4 flex flex-wrap gap-3"><form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Consolidar entrega final</button></form><Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Abrir histórico</Link></div></section></div><RightRail title="Validação auditável"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Prontidão</div><div className="mt-3 space-y-2 text-sm text-slate-300">{workflow.checklist.map((item) => <div key={item.key} className={`rounded-xl border px-3 py-2 ${item.done ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100" : "border-slate-800 bg-slate-950/30 text-slate-300"}`}><div className="font-medium">{item.label}</div>{item.detail ? <div className="mt-1 text-xs opacity-80">{item.detail}</div> : null}</div>)}</div></div><ValidationMatrix hasInference={Boolean(latestDiagnosis)} validations={validations} />{latestDiagnosis ? <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate/`)} method="post" className="grid gap-2"><input type="hidden" name="csrf_token" value={csrf} /><input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} /><select name="decision" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2"><option value="aprovado">Aprovar</option><option value="ajustar">Editar</option><option value="bloquear">Rejeitar</option></select><textarea name="note" placeholder="Comentários do responsável" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 min-h-28" /><button type="submit" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Validar decisão</button></form> : null}<div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v: any) => <div key={v.id} className="rounded-xl border border-slate-800 px-3 py-3"><div className="font-medium text-white">{v.decision}</div><div className="text-xs text-slate-500">{v.validated_at}</div><div className="mt-2 text-slate-300">{v.summary_text || v.note || '-'}</div></div>) : <div className="text-slate-400">Nenhuma validação ainda.</div>}</div></div></RightRail></div></DiagShell>;
+  const attentionItems = presentation.attention
+    .filter((item) => "action5w2h" in item)
+    .map((item) => item as typeof item & { action5w2h: Action5w2h });
+
+  const seriesBlock = (title: string, rows: ReportRow[] | undefined) => (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5">
+      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
+      <div className="mt-3 space-y-2 text-xs">
+        {(rows || []).map((row) => (
+          <div key={row.period} className="flex justify-between border-b border-slate-800 pb-1">
+            <span>{row.period}</span>
+            <span>{row.value}</span>
+          </div>
+        ))}
+        {!rows?.length ? <div className="text-slate-500">Sem série consolidada ainda.</div> : null}
+      </div>
+    </div>
+  );
+
+  return (
+    <DiagShell user={user} title="Validação humana e entrega final" subtitle="Fechamento do diagnóstico: leitura consolidada, decisão humana auditável e entrega final em tela e documento exportável." active="document" project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }} score={presentation.overallScore} status={workflow.readyForFinalDelivery ? "Pronto para entrega final" : "Aguardando validação humana ou consolidação final"} cta={<div className="flex gap-2"><PrintButton /><Link href={appPath(`/api/projects/${id}/pdf/`)} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Exportar PDF/HTML</Link></div>}>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Operação concluída.</div> : null}
+          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
+
+          <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Produto final</div>
+            <h2 className="mt-2 text-xl font-semibold text-white">Diagnóstico executivo final</h2>
+            <div className="mt-4 space-y-5 text-sm text-slate-300">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Resumo executivo</div><p className="mt-3 leading-7">{report.executiveSummary || presentation.executiveSummary}</p></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Leitura do cenário</div><p className="mt-3 leading-7">{report.scenarioReading || presentation.narrative}</p></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Causas raiz</div><ul className="mt-3 space-y-2">{(report.rootCauses || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
+              <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento Bancos</div><p className="mt-3 leading-7">{report.debtAnalysis?.banks || "-"}</p></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento FIDC</div><p className="mt-3 leading-7">{report.debtAnalysis?.fidc || "-"}</p></div></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Riscos prioritários</div><ul className="mt-3 space-y-2">{(report.priorityRisks || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Direcionamento estratégico</div><ul className="mt-3 space-y-2">{(report.strategicDirection || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Conclusão</div><p className="mt-3 leading-7">{report.conclusion || "-"}</p></div>
+              <div className="grid gap-4 xl:grid-cols-2">{seriesBlock("DRE histórico", report.dreHistorical)}{seriesBlock("DRE projetado", report.dreProjected)}{seriesBlock("DFC histórico", report.dfcHistorical)}{seriesBlock("DFC projetado", report.dfcProjected)}</div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Plano de ação 5W2H</div><div className="mt-3 space-y-3">{attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4"><div className="font-medium text-white">{item.title}</div><div className="mt-3 grid gap-2 text-xs text-slate-300 md:grid-cols-2 xl:grid-cols-3"><div><span className="text-slate-500">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-slate-500">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-slate-500">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-slate-500">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-slate-500">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-slate-500">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-slate-500">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}{attentionItems.length === 0 ? <div className="text-slate-500">Nenhuma ação 5W2H consolidada ainda.</div> : null}</div></div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Consolidar entrega final</button></form>
+              <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Abrir histórico</Link>
+            </div>
+          </section>
+        </div>
+
+        <RightRail title="Validação auditável">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Checklist final</div>
+            <div className="mt-3">
+              <WorkflowChecklist items={workflow.checklist} compact />
+            </div>
+          </div>
+          <StepGuidance title="Critério de fechamento" description="Esta etapa só fecha de verdade quando a leitura executiva estiver consolidada, houver validação humana registrada e o documento final puder ser exportado sem depender de interpretação adicional." />
+          <ValidationMatrix hasInference={Boolean(latestDiagnosis)} validations={validations} />
+          {latestDiagnosis ? <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate/`)} method="post" className="grid gap-2"><input type="hidden" name="csrf_token" value={csrf} /><input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} /><select name="decision" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2"><option value="aprovado">Aprovar</option><option value="ajustar">Editar</option><option value="bloquear">Rejeitar</option></select><textarea name="note" placeholder="Comentários do responsável" className="bg-slate-950/40 border border-slate-700 rounded-lg px-3 py-2 min-h-28" /><button type="submit" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Validar decisão</button></form> : null}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-slate-800 px-3 py-3"><div className="font-medium text-white">{v.decision}</div><div className="text-xs text-slate-500">{v.validated_at}</div><div className="mt-2 text-slate-300">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-slate-400">Nenhuma validação ainda.</div>}</div></div>
+        </RightRail>
+      </div>
+    </DiagShell>
+  );
 }
