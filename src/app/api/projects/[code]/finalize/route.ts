@@ -7,6 +7,7 @@ import { buildFinalDiagnosis, logWorkflowEvent } from "@/lib/diag-workflow";
 import { buildFinalExecutiveReport } from "@/lib/final-report";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { getUserByEmail } from "@/lib/users";
+import { getNextDeliveryVersion, insertDeliveryVersion } from "@/lib/delivery-versions";
 
 export async function POST(req: Request, ctx: { params: Promise<{ code: string }> }) {
   const { code } = await ctx.params;
@@ -41,12 +42,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
     .map((item) => ("action5w2h" in item ? item.action5w2h : null))
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
+  const versionNo = await getNextDeliveryVersion(project.id);
   const mergedFinal = {
     ...finalDiagnosis,
     executiveReport,
     actions5w2h,
     score: presentation.overallScore,
     generatedAt: new Date().toISOString(),
+    versionNo,
   };
 
   await updateProjectByCode(code, {
@@ -66,11 +69,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   });
 
   const dbUser = await getUserByEmail(user.email);
+  await insertDeliveryVersion({ projectId: project.id, versionNo, finalDiagnosis: mergedFinal, generatedBy: dbUser?.id || null });
   await logWorkflowEvent({
     projectId: project.id,
     stepKey: "entrega_final",
     status: "concluido",
-    payload: { score: presentation.overallScore, actions5w2h: actions5w2h.length },
+    payload: { score: presentation.overallScore, actions5w2h: actions5w2h.length, versionNo },
     createdBy: dbUser?.id || null,
   });
 

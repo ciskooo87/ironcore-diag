@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 const KIND_GUIDANCE: Record<string, string[]> = {
   historico_faturamento: ["Esperado: coluna de faturamento/receita/vendas.", "A base deve trazer valor financeiro reconhecível."],
@@ -10,13 +10,51 @@ const KIND_GUIDANCE: Record<string, string[]> = {
   historico_endividamento_fidc: ["Ideal: tipo/projeto/modalidade/vencido/a_vencer/total.", "Evite misturar linhas bancárias nesta base."],
 };
 
+type PreviewResponse = {
+  ok: boolean;
+  parsed: {
+    quality: string;
+    matchedFields: string[];
+    warnings: string[];
+    errors: string[];
+    totals: Record<string, number>;
+  };
+};
+
 export function UploadHistoryForm({ action, kind, label, defaultDate }: { action: string; kind: string; label: string; defaultDate: string }) {
   const [submitting, setSubmitting] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewResponse | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
   const guidance = useMemo(() => KIND_GUIDANCE[kind] || [], [kind]);
+
+  async function runPreview() {
+    const form = formRef.current;
+    if (!form) return;
+    setPreviewing(true);
+    setError(null);
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(`${action.replace(/\/$/, "")}/preview/`, {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "preview_failed");
+      setPreview(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "preview_failed");
+    } finally {
+      setPreviewing(false);
+    }
+  }
 
   return (
     <form
+      ref={formRef}
       action={action}
       method="post"
       encType="multipart/form-data"
@@ -69,7 +107,20 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
         </label>
       </div>
       <input type="hidden" name="upload_kind" value={kind} />
-      <button type="submit" disabled={submitting} className="mt-4 w-full rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15 disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
+      <div className="mt-4 grid gap-2 md:grid-cols-2">
+        <button type="button" onClick={runPreview} disabled={previewing || submitting} className="rounded-2xl border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm text-slate-100 hover:border-slate-600 disabled:opacity-60">{previewing ? "Lendo base..." : "Pré-visualizar leitura"}</button>
+        <button type="submit" disabled={submitting} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15 disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
+      </div>
+      {preview ? (
+        <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-300">
+          <div className="font-medium text-white">Preview do parser</div>
+          <div className="mt-2">Qualidade: {preview.parsed.quality}</div>
+          <div className="mt-1">Campos reconhecidos: {preview.parsed.matchedFields.join(", ") || "nenhum"}</div>
+          <div className="mt-1">Totais lidos: faturamento={preview.parsed.totals.faturamento || 0} · CAR={preview.parsed.totals.contas_receber || 0} · CAP={preview.parsed.totals.contas_pagar || 0} · dívida={preview.parsed.totals.debt_rows || 0} linha(s)</div>
+          {preview.parsed.warnings.length ? <div className="mt-2 text-amber-300">⚠ {preview.parsed.warnings.join(" | ")}</div> : null}
+          {preview.parsed.errors.length ? <div className="mt-2 text-rose-300">✖ {preview.parsed.errors.join(" | ")}</div> : null}
+        </div>
+      ) : null}
       {error ? <div className="mt-3 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {error}</div> : null}
     </form>
   );
