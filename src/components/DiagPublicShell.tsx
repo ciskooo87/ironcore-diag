@@ -23,7 +23,7 @@ export function DiagPublicShell({ title, subtitle, children, active = "overview"
           <div className="mt-2 text-lg font-semibold text-white">IRONCORE /diag</div>
           <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
             {NAV.map((item) => (
-              <Link key={item.key} href={appPath(item.href)} className={`whitespace-nowrap rounded-2xl border px-3 py-2 text-xs ${active === item.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300"}`}>{item.label}</Link>
+              <Link key={item.key} href={item.href} className={`whitespace-nowrap rounded-2xl border px-3 py-2 text-xs ${active === item.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300"}`}>{item.label}</Link>
             ))}
           </div>
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -64,7 +64,7 @@ export function DiagPublicShell({ title, subtitle, children, active = "overview"
                   {subtitle ? <p className="mt-2 max-w-3xl text-sm text-slate-400 md:text-base">{subtitle}</p> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                  <Link href={appPath('/')} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Ir para entrada do produto</Link>
+                  <Link href="/" className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Ir para entrada do produto</Link>
                 </div>
               </div>
             </header>
