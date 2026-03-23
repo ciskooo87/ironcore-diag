@@ -3,19 +3,29 @@ import * as XLSX from "xlsx";
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_UPLOAD_EXTENSIONS = [".csv", ".pdf", ".xlsx", ".xls", ".xlsm"] as const;
 
+type DebtRow = {
+  type: "fidc" | "bancario";
+  group: string;
+  modality: string;
+  overdue: number;
+  upcoming: number;
+  total: number;
+};
+
 type ParsedUpload = {
   faturamento: number;
   contas_receber: number;
   contas_pagar: number;
   extrato_bancario: number;
   duplicatas: number;
+  debt_rows: DebtRow[];
   lines: number;
   quality: "ok" | "partial" | "weak";
   matchedFields: string[];
   unknownColumns: string[];
 };
 
-const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns"> | null> = {
+const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows"> | null> = {
   faturamento: "faturamento",
   receita: "faturamento",
   vendas: "faturamento",
@@ -33,13 +43,22 @@ const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matche
   títulos: "duplicatas",
 };
 
-const PDF_HINTS: Record<keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns">, string[]> = {
+const PDF_HINTS: Record<keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows">, string[]> = {
   faturamento: ["faturamento", "receita", "vendas", "valor faturado"],
   contas_receber: ["contas a receber", "a receber", "recebiveis", "recebíveis"],
   contas_pagar: ["contas a pagar", "a pagar", "fornecedores", "pagamentos"],
   extrato_bancario: ["saldo final", "saldo atual", "extrato", "saldo"],
   duplicatas: ["duplicatas", "titulos", "títulos"],
 };
+
+function normalizeKey(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
 
 function toNum(v: unknown) {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
@@ -75,9 +94,38 @@ function extractMonetaryCandidates(line: string): number[] {
 }
 
 function finalize(acc: ParsedUpload): ParsedUpload {
-  const score = acc.matchedFields.length;
+  const score = acc.matchedFields.length + (acc.debt_rows.length ? 2 : 0);
   acc.quality = score >= 3 ? "ok" : score >= 1 ? "partial" : "weak";
   return acc;
+}
+
+function extractDebtRows(rows: Array<Record<string, unknown>>): DebtRow[] {
+  const out: DebtRow[] = [];
+  for (const row of rows) {
+    const normalized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
+
+    const kindRaw = String(normalized.tipo || normalized.type || normalized.grupo_tipo || "").toLowerCase();
+    const group = String(normalized.projeto || normalized.grupo || normalized.fundo || normalized.banco || normalized.credor || "").trim();
+    const modality = String(normalized.modalidade || normalized.produto || normalized.linha || normalized.operacao || "").trim();
+    const overdue = toNum(normalized.vencido || normalized.valor_vencido || normalized.overdue);
+    const upcoming = toNum(normalized.a_vencer || normalized.avencer || normalized.valor_a_vencer || normalized.upcoming);
+    const total = toNum(normalized.total || normalized.saldo_devedor || normalized.valor_total) || overdue + upcoming;
+
+    const inferredType = kindRaw.includes("fidc")
+      ? "fidc"
+      : kindRaw.includes("banco") || kindRaw.includes("banc")
+        ? "bancario"
+        : group.toLowerCase().includes("fidc")
+          ? "fidc"
+          : group
+            ? "bancario"
+            : "";
+
+    if (!inferredType || !group || !modality || total <= 0) continue;
+    out.push({ type: inferredType as "fidc" | "bancario", group, modality, overdue, upcoming, total });
+  }
+  return out;
 }
 
 function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
@@ -87,6 +135,7 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
     contas_pagar: 0,
     extrato_bancario: 0,
     duplicatas: 0,
+    debt_rows: extractDebtRows(rows),
     lines: rows.length,
     quality: "weak",
     matchedFields: [],
@@ -98,7 +147,7 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
 
   for (const row of rows) {
     for (const [k, v] of Object.entries(row)) {
-      const normalized = k.trim().toLowerCase();
+      const normalized = normalizeKey(k);
       const key = MAP[normalized] || null;
       if (key) {
         acc[key] += toNum(v);
@@ -109,6 +158,7 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
     }
   }
 
+  if (acc.debt_rows.length) matched.add("debt_rows");
   acc.matchedFields = Array.from(matched);
   acc.unknownColumns = Array.from(unknown).slice(0, 20);
   return finalize(acc);
@@ -126,6 +176,7 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
     contas_pagar: 0,
     extrato_bancario: 0,
     duplicatas: 0,
+    debt_rows: [],
     lines: lines.length,
     quality: "weak",
     matchedFields: [],
@@ -139,7 +190,7 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
     if (values.length === 0) continue;
 
     let localMatched = false;
-    for (const [field, hints] of Object.entries(PDF_HINTS) as Array<[keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns">, string[]]>) {
+    for (const [field, hints] of Object.entries(PDF_HINTS) as Array<[keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows">, string[]]>) {
       if (hints.some((h) => lower.includes(h))) {
         acc[field] += values[values.length - 1] || 0;
         matched.add(field);
@@ -195,3 +246,5 @@ export async function parseUploadedFile(file: File) {
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
   return fromRows(rows);
 }
+
+export { ALLOWED_UPLOAD_EXTENSIONS, MAX_UPLOAD_SIZE_BYTES };

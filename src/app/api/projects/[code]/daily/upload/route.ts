@@ -43,6 +43,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
       contas_pagar: parsed.contas_pagar,
       extrato_bancario: parsed.extrato_bancario,
       duplicatas: parsed.duplicatas,
+      debt_rows: parsed.debt_rows,
       parser_meta: { quality: parsed.quality, matched_fields: parsed.matchedFields, unknown_columns: parsed.unknownColumns },
       notes: `${notes} | upload_kind:${uploadKind} arquivo:${file.name} linhas:${parsed.lines}`.trim(),
     };
