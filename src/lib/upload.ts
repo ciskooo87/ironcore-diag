@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_UPLOAD_EXTENSIONS = [".csv", ".pdf", ".xlsx", ".xls", ".xlsm"] as const;
@@ -77,7 +77,6 @@ function parseBrMoney(input: string): number | null {
     .replace(/\./g, "")
     .replace(/,/g, ".")
     .replace(/[^0-9.-]/g, "");
-
   if (!cleaned) return null;
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : null;
@@ -104,24 +103,13 @@ function extractDebtRows(rows: Array<Record<string, unknown>>): DebtRow[] {
   for (const row of rows) {
     const normalized: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
-
     const kindRaw = String(normalized.tipo || normalized.type || normalized.grupo_tipo || "").toLowerCase();
     const group = String(normalized.projeto || normalized.grupo || normalized.fundo || normalized.banco || normalized.credor || "").trim();
     const modality = String(normalized.modalidade || normalized.produto || normalized.linha || normalized.operacao || "").trim();
     const overdue = toNum(normalized.vencido || normalized.valor_vencido || normalized.overdue);
     const upcoming = toNum(normalized.a_vencer || normalized.avencer || normalized.valor_a_vencer || normalized.upcoming);
     const total = toNum(normalized.total || normalized.saldo_devedor || normalized.valor_total) || overdue + upcoming;
-
-    const inferredType = kindRaw.includes("fidc")
-      ? "fidc"
-      : kindRaw.includes("banco") || kindRaw.includes("banc")
-        ? "bancario"
-        : group.toLowerCase().includes("fidc")
-          ? "fidc"
-          : group
-            ? "bancario"
-            : "";
-
+    const inferredType = kindRaw.includes("fidc") ? "fidc" : kindRaw.includes("banco") || kindRaw.includes("banc") ? "bancario" : group.toLowerCase().includes("fidc") ? "fidc" : group ? "bancario" : "";
     if (!inferredType || !group || !modality || total <= 0) continue;
     out.push({ type: inferredType as "fidc" | "bancario", group, modality, overdue, upcoming, total });
   }
@@ -141,10 +129,8 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
     matchedFields: [],
     unknownColumns: [],
   };
-
   const matched = new Set<string>();
   const unknown = new Set<string>();
-
   for (const row of rows) {
     for (const [k, v] of Object.entries(row)) {
       const normalized = normalizeKey(k);
@@ -157,7 +143,6 @@ function fromRows(rows: Array<Record<string, unknown>>): ParsedUpload {
       }
     }
   }
-
   if (acc.debt_rows.length) matched.add("debt_rows");
   acc.matchedFields = Array.from(matched);
   acc.unknownColumns = Array.from(unknown).slice(0, 20);
@@ -169,26 +154,12 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
   const result = await pdf(buf);
   const text = result.text || "";
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-
-  const acc: ParsedUpload = {
-    faturamento: 0,
-    contas_receber: 0,
-    contas_pagar: 0,
-    extrato_bancario: 0,
-    duplicatas: 0,
-    debt_rows: [],
-    lines: lines.length,
-    quality: "weak",
-    matchedFields: [],
-    unknownColumns: [],
-  };
+  const acc: ParsedUpload = { faturamento: 0, contas_receber: 0, contas_pagar: 0, extrato_bancario: 0, duplicatas: 0, debt_rows: [], lines: lines.length, quality: "weak", matchedFields: [], unknownColumns: [] };
   const matched = new Set<string>();
-
   for (const line of lines) {
     const lower = line.toLowerCase();
     const values = extractMonetaryCandidates(line);
     if (values.length === 0) continue;
-
     let localMatched = false;
     for (const [field, hints] of Object.entries(PDF_HINTS) as Array<[keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows">, string[]]>) {
       if (hints.some((h) => lower.includes(h))) {
@@ -198,13 +169,11 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
         break;
       }
     }
-
     if (!localMatched && (lower.includes("saldo") || lower.includes("extrato"))) {
       acc.extrato_bancario += values[values.length - 1] || 0;
       matched.add("extrato_bancario");
     }
   }
-
   if (acc.extrato_bancario === 0) {
     let sum = 0;
     for (const line of lines) {
@@ -213,15 +182,32 @@ async function fromPdfBuffer(buf: Buffer): Promise<ParsedUpload> {
     }
     acc.extrato_bancario = sum;
   }
-
   acc.matchedFields = Array.from(matched);
   return finalize(acc);
+}
+
+async function rowsFromExcel(buf: Buffer) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(Uint8Array.from(buf) as any);
+  const worksheet = workbook.worksheets[0];
+  const headers: string[] = [];
+  const rows: Array<Record<string, unknown>> = [];
+  worksheet.getRow(1).eachCell((cell, col) => { headers[col - 1] = String(cell.value || "").trim(); });
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const obj: Record<string, unknown> = {};
+    headers.forEach((header, idx) => {
+      const cell = row.getCell(idx + 1);
+      obj[header] = cell.text || cell.value || "";
+    });
+    if (Object.values(obj).some((v) => String(v || "").trim() !== "")) rows.push(obj);
+  });
+  return rows;
 }
 
 export async function parseUploadedFile(file: File) {
   const buf = Buffer.from(await file.arrayBuffer());
   const name = file.name.toLowerCase();
-
   if (name.endsWith(".csv")) {
     const txt = buf.toString("utf-8");
     const [head, ...lines] = txt.split(/\r?\n/).filter(Boolean);
@@ -229,21 +215,13 @@ export async function parseUploadedFile(file: File) {
     const rows = lines.map((line) => {
       const parts = line.split(",");
       const row: Record<string, unknown> = {};
-      cols.forEach((c, i) => {
-        row[c] = parts[i] ?? "";
-      });
+      cols.forEach((c, i) => { row[c] = parts[i] ?? ""; });
       return row;
     });
     return fromRows(rows);
   }
-
-  if (name.endsWith(".pdf")) {
-    return fromPdfBuffer(buf);
-  }
-
-  const wb = XLSX.read(buf, { type: "buffer" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+  if (name.endsWith(".pdf")) return fromPdfBuffer(buf);
+  const rows = await rowsFromExcel(buf);
   return fromRows(rows);
 }
 

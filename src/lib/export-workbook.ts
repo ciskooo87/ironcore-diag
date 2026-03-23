@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 type StatementRow = { label: string; values: number[] };
 type DebtTableRow = { type: "fidc" | "bancario"; group: string; modality: string; overdue: number; upcoming: number; total: number };
@@ -22,27 +22,31 @@ type Report = {
 
 type Action5w2h = { what?: string; why?: string; who?: string; when?: string; where?: string; how?: string; howMuch?: string };
 
-function sheetFromStatement(title: string, statement?: { periods: string[]; rows: StatementRow[] }) {
-  if (!statement) return XLSX.utils.aoa_to_sheet([[title], [], ["Demonstrativo não consolidado"]]);
-  const aoa: (string | number)[][] = [[title], []];
-  aoa.push(["Linha", ...statement.periods]);
-  for (const row of statement.rows) aoa.push([row.label, ...row.values]);
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [{ wch: 28 }, ...statement.periods.map(() => ({ wch: 16 }))];
-  return ws;
+function addStatementSheet(wb: ExcelJS.Workbook, name: string, statement?: { periods: string[]; rows: StatementRow[] }) {
+  const ws = wb.addWorksheet(name);
+  if (!statement) {
+    ws.addRow([name]);
+    ws.addRow([]);
+    ws.addRow(["Demonstrativo não consolidado"]);
+    return;
+  }
+  ws.addRow(["Linha", ...statement.periods]);
+  statement.rows.forEach((row) => ws.addRow([row.label, ...row.values]));
+  ws.columns = [{ width: 28 }, ...statement.periods.map(() => ({ width: 16 }))];
 }
 
-export function buildExecutiveWorkbook(input: {
+export async function buildExecutiveWorkbook(input: {
   projectName: string;
   client?: string;
   score?: number;
   report?: Report;
   actions5w2h?: Action5w2h[];
 }) {
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
   const report = input.report || {};
 
-  const resumo = XLSX.utils.aoa_to_sheet([
+  let ws = wb.addWorksheet("Resumo Executivo");
+  ws.addRows([
     ["Diagnóstico Executivo Final"],
     [],
     ["Cliente", input.client || input.projectName],
@@ -55,36 +59,28 @@ export function buildExecutiveWorkbook(input: {
     [],
     ["Conclusão", report.conclusion || "-"],
   ]);
-  resumo['!cols'] = [{ wch: 22 }, { wch: 110 }];
-  XLSX.utils.book_append_sheet(wb, resumo, 'Resumo Executivo');
+  ws.columns = [{ width: 22 }, { width: 110 }];
 
-  const kpis = XLSX.utils.aoa_to_sheet([
-    ["Indicador", "Valor", "Tom"],
-    ...((report.kpis || []).map((item) => [item.label, item.value, item.tone]))
-  ]);
-  kpis['!cols'] = [{ wch: 38 }, { wch: 22 }, { wch: 12 }];
-  XLSX.utils.book_append_sheet(wb, kpis, 'KPIs');
+  ws = wb.addWorksheet("KPIs");
+  ws.addRow(["Indicador", "Valor", "Tom"]);
+  (report.kpis || []).forEach((item) => ws.addRow([item.label, item.value, item.tone]));
+  ws.columns = [{ width: 38 }, { width: 22 }, { width: 12 }];
 
-  const debtRows = report.debtTable || [];
-  const debt = XLSX.utils.aoa_to_sheet([
-    ["Tipo", "Projeto", "Modalidade", "Vencido", "A Vencer", "Total"],
-    ...debtRows.map((row) => [row.type, row.group, row.modality, row.overdue, row.upcoming, row.total])
-  ]);
-  debt['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
-  XLSX.utils.book_append_sheet(wb, debt, 'Endividamento');
+  ws = wb.addWorksheet("Endividamento");
+  ws.addRow(["Tipo", "Projeto", "Modalidade", "Vencido", "A Vencer", "Total"]);
+  (report.debtTable || []).forEach((row) => ws.addRow([row.type, row.group, row.modality, row.overdue, row.upcoming, row.total]));
+  ws.columns = [{ width: 14 }, { width: 28 }, { width: 28 }, { width: 16 }, { width: 16 }, { width: 16 }];
 
-  XLSX.utils.book_append_sheet(wb, sheetFromStatement('DRE Histórico', report.dreHistoricalStatement), 'DRE Histórico');
-  XLSX.utils.book_append_sheet(wb, sheetFromStatement('DRE Projetado', report.dreProjectedStatement), 'DRE Projetado');
-  XLSX.utils.book_append_sheet(wb, sheetFromStatement('DFC Histórico', report.dfcHistoricalStatement), 'DFC Histórico');
-  XLSX.utils.book_append_sheet(wb, sheetFromStatement('DFC Projetado', report.dfcProjectedStatement), 'DFC Projetado');
-  XLSX.utils.book_append_sheet(wb, sheetFromStatement('Fluxo de Caixa Projetado', report.projectedCashflowStatement), 'Fluxo Caixa');
+  addStatementSheet(wb, "DRE Histórico", report.dreHistoricalStatement);
+  addStatementSheet(wb, "DRE Projetado", report.dreProjectedStatement);
+  addStatementSheet(wb, "DFC Histórico", report.dfcHistoricalStatement);
+  addStatementSheet(wb, "DFC Projetado", report.dfcProjectedStatement);
+  addStatementSheet(wb, "Fluxo Caixa", report.projectedCashflowStatement);
 
-  const actions = XLSX.utils.aoa_to_sheet([
-    ["What", "Why", "Who", "When", "Where", "How", "How much"],
-    ...((input.actions5w2h || []).map((a) => [a.what || '-', a.why || '-', a.who || '-', a.when || '-', a.where || '-', a.how || '-', a.howMuch || '-']))
-  ]);
-  actions['!cols'] = [{ wch: 28 }, { wch: 42 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 36 }, { wch: 22 }];
-  XLSX.utils.book_append_sheet(wb, actions, 'Plano 5W2H');
+  ws = wb.addWorksheet("Plano 5W2H");
+  ws.addRow(["What", "Why", "Who", "When", "Where", "How", "How much"]);
+  (input.actions5w2h || []).forEach((a) => ws.addRow([a.what || '-', a.why || '-', a.who || '-', a.when || '-', a.where || '-', a.how || '-', a.howMuch || '-']));
+  ws.columns = [{ width: 28 }, { width: 42 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 36 }, { width: 22 }];
 
-  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  return Buffer.from(await wb.xlsx.writeBuffer());
 }

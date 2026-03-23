@@ -33,7 +33,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
       }))
     : [];
 
-  const buffer = buildExecutiveWorkbook({
+  const buffer = await buildExecutiveWorkbook({
     projectName: project.name,
     client: project.legal_name,
     score: Number(finalDiagnosis.score || 0) || undefined,
