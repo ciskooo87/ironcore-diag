@@ -1,6 +1,15 @@
 import { dbQuery } from "@/lib/db";
 import { deepseekChat } from "@/lib/deepseek";
 
+export type DebtRow = {
+  type: "fidc" | "bancario";
+  group: string;
+  modality: string;
+  overdue: number;
+  upcoming: number;
+  total: number;
+};
+
 export type HistoricalUploadAggregate = {
   totalUploads: number;
   byKind: Record<string, number>;
@@ -14,6 +23,7 @@ export type HistoricalUploadAggregate = {
     endividamentoFidc: number;
   };
   latestBusinessDate: string | null;
+  debtRows: DebtRow[];
 };
 
 export async function getHistoricalUploadAggregate(projectId: string): Promise<HistoricalUploadAggregate> {
@@ -37,6 +47,7 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     endividamentoBancos: 0,
     endividamentoFidc: 0,
   };
+  const debtMap = new Map<string, DebtRow>();
 
   for (const row of q.rows) {
     const payload = row.payload || {};
@@ -52,9 +63,31 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     totals.duplicatas += Number(payload.duplicatas || 0);
     if (kind === "historico_endividamento_bancos") totals.endividamentoBancos += Number(payload.contas_pagar || payload.duplicatas || 0);
     if (kind === "historico_endividamento_fidc") totals.endividamentoFidc += Number(payload.contas_receber || payload.extrato_bancario || 0);
+
+    const debtRows = Array.isArray(payload.debt_rows) ? (payload.debt_rows as Record<string, unknown>[]) : [];
+    for (const item of debtRows) {
+      const type = String(item.type || kind === "historico_endividamento_fidc" ? "fidc" : "bancario") as "fidc" | "bancario";
+      const group = String(item.group || "Não classificado");
+      const modality = String(item.modality || "Não classificado");
+      const overdue = Number(item.overdue || 0);
+      const upcoming = Number(item.upcoming || 0);
+      const total = Number(item.total || overdue + upcoming || 0);
+      const key = `${type}::${group}::${modality}`;
+      const current = debtMap.get(key) || { type, group, modality, overdue: 0, upcoming: 0, total: 0 };
+      current.overdue += overdue;
+      current.upcoming += upcoming;
+      current.total += total;
+      debtMap.set(key, current);
+    }
   }
 
-  return { totalUploads: q.rows.length, byKind, totals, latestBusinessDate: q.rows[0]?.business_date || null };
+  return {
+    totalUploads: q.rows.length,
+    byKind,
+    totals,
+    latestBusinessDate: q.rows[0]?.business_date || null,
+    debtRows: Array.from(debtMap.values()).sort((a, b) => a.type.localeCompare(b.type) || a.group.localeCompare(b.group) || a.modality.localeCompare(b.modality)),
+  };
 }
 
 export async function createHistoricalDiagnosis(input: { projectId: string; projectCode: string; projectName: string; projectSummary: string; }) {

@@ -17,11 +17,14 @@ import { buildWorkflowChecklist } from "@/lib/diag-workflow";
 type ReportRow = { period: string; value: string | number };
 type StatementRow = { label: string; values: number[] };
 type Action5w2h = { what?: string; why?: string; who?: string; when?: string; where?: string; how?: string; howMuch?: string };
+type DebtTableRow = { type: "fidc" | "bancario"; group: string; modality: string; overdue: number; upcoming: number; total: number };
+
 type FinalReport = {
   executiveSummary?: string;
   scenarioReading?: string;
   rootCauses?: string[];
   debtAnalysis?: { banks?: string; fidc?: string; consolidated?: string };
+  debtTable?: DebtTableRow[];
   cashImpact?: string;
   priorityRisks?: string[];
   strategicDirection?: string[];
@@ -198,29 +201,46 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
               </div>
 
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5 overflow-x-auto">
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Tabela de endividamento</div>
-                <table className="mt-4 min-w-[640px] w-full text-sm">
-                  <thead>
-                    <tr className="text-slate-400">
-                      <th className="border-b border-slate-800 px-3 py-2 text-left">Linha</th>
-                      <th className="border-b border-slate-800 px-3 py-2 text-left">Leitura</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">Bancos</td>
-                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.banks || "-"}</td>
-                    </tr>
-                    <tr>
-                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">FIDC</td>
-                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.fidc || "-"}</td>
-                    </tr>
-                    <tr>
-                      <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">Consolidado</td>
-                      <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{report.debtAnalysis?.consolidated || "-"}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Endividamento analítico</div>
+                {(["fidc", "bancario"] as const).map((bucket) => {
+                  const rows = (report.debtTable || []).filter((item) => item.type === bucket);
+                  const totalOverdue = rows.reduce((sum, item) => sum + item.overdue, 0);
+                  const totalUpcoming = rows.reduce((sum, item) => sum + item.upcoming, 0);
+                  const total = rows.reduce((sum, item) => sum + item.total, 0);
+                  return (
+                    <div key={bucket} className="mt-5">
+                      <div className="mb-2 text-sm font-medium text-white">{bucket === "fidc" ? "FIDC" : "Bancário"}</div>
+                      <table className="w-full min-w-[760px] text-sm">
+                        <thead>
+                          <tr className="text-slate-400">
+                            <th className="border-b border-slate-800 px-3 py-2 text-left">Projeto</th>
+                            <th className="border-b border-slate-800 px-3 py-2 text-left">Modalidade</th>
+                            <th className="border-b border-slate-800 px-3 py-2 text-right">Vencido</th>
+                            <th className="border-b border-slate-800 px-3 py-2 text-right">A Vencer</th>
+                            <th className="border-b border-slate-800 px-3 py-2 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((row, idx) => (
+                            <tr key={`${bucket}-${row.group}-${row.modality}-${idx}`}>
+                              <td className="border-b border-slate-900 px-3 py-3 font-medium text-white">{row.group}</td>
+                              <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{row.modality}</td>
+                              <td className="border-b border-slate-900 px-3 py-3 text-right text-rose-300">{money(row.overdue)}</td>
+                              <td className="border-b border-slate-900 px-3 py-3 text-right text-slate-300">{money(row.upcoming)}</td>
+                              <td className="border-b border-slate-900 px-3 py-3 text-right text-white">{money(row.total)}</td>
+                            </tr>
+                          ))}
+                          <tr>
+                            <td className="px-3 py-3 font-semibold text-white" colSpan={2}>Total {bucket === "fidc" ? "FIDC" : "Bancário"}</td>
+                            <td className="px-3 py-3 text-right font-semibold text-rose-300">{money(totalOverdue)}</td>
+                            <td className="px-3 py-3 text-right font-semibold text-slate-200">{money(totalUpcoming)}</td>
+                            <td className="px-3 py-3 text-right font-semibold text-white">{money(total)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Riscos prioritários</div><ul className="mt-3 space-y-2">{(report.priorityRisks || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>

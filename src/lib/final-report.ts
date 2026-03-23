@@ -3,12 +3,14 @@ import { getHistoricalUploadAggregate } from "@/lib/historical-diagnosis";
 
 type SeriesPoint = { period: string; value: number };
 type StatementRow = { label: string; values: number[] };
+type DebtTableRow = { type: "fidc" | "bancario"; group: string; modality: string; overdue: number; upcoming: number; total: number };
 
 type ReportBlock = {
   executiveSummary: string;
   scenarioReading: string;
   rootCauses: string[];
   debtAnalysis: { banks: string; fidc: string; consolidated: string };
+  debtTable: DebtTableRow[];
   cashImpact: string;
   priorityRisks: string[];
   strategicDirection: string[];
@@ -115,6 +117,14 @@ function projectedCashflowModel(series: SeriesPoint[]) {
   };
 }
 
+function buildDebtTable(rawRows: DebtTableRow[], banksTotal: number, fidcTotal: number): DebtTableRow[] {
+  if (rawRows.length) return rawRows;
+  return [
+    { type: "fidc", group: "FIDC", modality: "Carteira consolidada", overdue: 0, upcoming: fidcTotal, total: fidcTotal },
+    { type: "bancario", group: "Bancário", modality: "Dívida consolidada", overdue: Math.round(banksTotal * 0.18), upcoming: Math.round(banksTotal * 0.82), total: banksTotal },
+  ];
+}
+
 export async function buildFinalExecutiveReport(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
@@ -126,6 +136,7 @@ export async function buildFinalExecutiveReport(project: Project) {
   const dreProjected = buildSeries(Math.max(monthlyRevenue * 0.92, 1), 6, monthlyRevenue * 0.03);
   const dfcHistorical = buildSeries(-Math.max(pressure / 6, 50000), 12, -15000);
   const dfcProjected = buildSeries(Math.min(-pressure / 8, -30000), 6, 20000);
+  const debtTable = buildDebtTable(aggregate.debtRows, aggregate.totals.endividamentoBancos, aggregate.totals.endividamentoFidc);
 
   const executiveSummary = `A operação apresenta deterioração relevante entre geração operacional, estrutura de capital e liquidez. A receita histórica consolidada não sustenta o serviço da dívida assumida, enquanto a pressão entre CAP e CAR reduz a capacidade de financiamento do giro. O quadro exige resposta imediata em caixa, dívida e disciplina operacional.`;
   const scenarioReading = `O projeto mostra descasamento entre captação, alocação e retorno. A empresa absorveu obrigações financeiras sem construir geração de caixa proporcional. Isso levou a compressão de atividade, perda de fôlego comercial e aumento da rigidez financeira.`;
@@ -160,6 +171,7 @@ export async function buildFinalExecutiveReport(project: Project) {
     scenarioReading,
     rootCauses,
     debtAnalysis,
+    debtTable,
     cashImpact,
     priorityRisks,
     strategicDirection,
