@@ -13,6 +13,6 @@ export async function insertDeliveryVersion(input: { projectId: string; versionN
 }
 
 export async function listDeliveryVersions(projectId: string) {
-  const q = await dbQuery<{ id: string; version_no: number; generated_at: string }>(`select id, version_no, generated_at::text from project_delivery_versions where project_id=$1 order by version_no desc`, [projectId]);
+  const q = await dbQuery<{ id: string; version_no: number; generated_at: string; final_diagnosis: Record<string, unknown> }>(`select id, version_no, generated_at::text, final_diagnosis from project_delivery_versions where project_id=$1 order by version_no desc`, [projectId]);
   return q.rows;
 }
