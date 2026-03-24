@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 
 const KIND_GUIDANCE: Record<string, string[]> = {
   historico_faturamento: ["Esperado: coluna de faturamento/receita/vendas.", "A base deve trazer valor financeiro reconhecível."],
@@ -21,7 +22,7 @@ type PreviewResponse = {
   };
 };
 
-export function UploadHistoryForm({ action, kind, label, defaultDate }: { action: string; kind: string; label: string; defaultDate: string }) {
+export function UploadHistoryForm({ action, kind, label, defaultDate, templateHref }: { action: string; kind: string; label: string; defaultDate: string; templateHref: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,11 @@ export function UploadHistoryForm({ action, kind, label, defaultDate }: { action
       </div>
       <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-3 text-xs text-slate-400">
         {guidance.map((item) => <div key={item}>• {item}</div>)}
+      </div>
+      <div className="mt-3">
+        <Link href={templateHref} className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100 hover:bg-emerald-400/15">
+          Baixar template oficial
+        </Link>
       </div>
       <div className="mt-4 grid gap-2">
         <label className="grid gap-1">
