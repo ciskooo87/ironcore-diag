@@ -29,13 +29,13 @@ export function buildHistoricalValidationSummary(input: {
   createdAt?: string;
   response?: string;
 }) {
+  const responseSnippet = String(input.response || '').replace(/\s+/g, ' ').slice(0, 180);
   return [
     `Projeto: ${input.projectCode}`,
     `Decisão: ${input.decision}`,
-    `Provider: ${input.provider || '-'}`,
-    `Modelo: ${input.model || '-'}`,
+    `IA: ${input.provider || '-'} / ${input.model || '-'}`,
     `Gerado em: ${input.createdAt || '-'}`,
-    `Resposta: ${input.response || '-'}`,
-    `Nota: ${input.note || '-'}`,
+    `Leitura: ${responseSnippet || '-'}`,
+    `Nota humana: ${input.note || '-'}`,
   ].join(' | ');
 }
