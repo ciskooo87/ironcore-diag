@@ -30,26 +30,34 @@ const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matche
   faturamento: "faturamento",
   receita: "faturamento",
   vendas: "faturamento",
+  receita_bruta: "faturamento",
+  valor_faturado: "faturamento",
   contas_receber: "contas_receber",
   recebiveis: "contas_receber",
   recebíveis: "contas_receber",
+  carteira: "contas_receber",
+  saldo_carteira: "contas_receber",
   contas_pagar: "contas_pagar",
   fornecedores: "contas_pagar",
   pagamentos: "contas_pagar",
+  saldo_fornecedores: "contas_pagar",
   extrato_bancario: "extrato_bancario",
   extrato: "extrato_bancario",
   saldo: "extrato_bancario",
+  saldo_final: "extrato_bancario",
+  saldo_atual: "extrato_bancario",
   duplicatas: "duplicatas",
   titulos: "duplicatas",
   títulos: "duplicatas",
+  saldo_devedor: "duplicatas",
 };
 
 const PDF_HINTS: Record<keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows" | "warnings">, string[]> = {
-  faturamento: ["faturamento", "receita", "vendas", "valor faturado"],
-  contas_receber: ["contas a receber", "a receber", "recebiveis", "recebíveis"],
+  faturamento: ["faturamento", "receita", "vendas", "valor faturado", "receita bruta"],
+  contas_receber: ["contas a receber", "a receber", "recebiveis", "recebíveis", "carteira"],
   contas_pagar: ["contas a pagar", "a pagar", "fornecedores", "pagamentos"],
   extrato_bancario: ["saldo final", "saldo atual", "extrato", "saldo"],
-  duplicatas: ["duplicatas", "titulos", "títulos"],
+  duplicatas: ["duplicatas", "titulos", "títulos", "saldo devedor"],
 };
 
 function normalizeKey(value: string) {
@@ -88,6 +96,18 @@ function extractMonetaryCandidates(line: string): number[] {
   return out;
 }
 
+function detectCsvDelimiter(headerLine: string) {
+  const semicolons = (headerLine.match(/;/g) || []).length;
+  const commas = (headerLine.match(/,/g) || []).length;
+  return semicolons > commas ? ";" : ",";
+}
+
+function looksLikeHeader(values: string[]) {
+  const normalized = values.map((v) => normalizeKey(v)).filter(Boolean);
+  const score = normalized.filter((v) => v in MAP || ["tipo", "type", "projeto", "grupo", "fundo", "banco", "credor", "modalidade", "produto", "linha", "operacao", "vencido", "a_vencer", "total"].includes(v)).length;
+  return score >= Math.max(2, Math.ceil(values.length * 0.35));
+}
+
 function finalize(acc: ParsedUpload): ParsedUpload {
   const score = acc.matchedFields.length + (acc.debt_rows.length ? 2 : 0);
   acc.quality = score >= 3 ? "ok" : score >= 1 ? "partial" : "weak";
@@ -102,10 +122,10 @@ function extractDebtRows(rows: Array<Record<string, unknown>>): DebtRow[] {
     const normalized: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(row)) normalized[normalizeKey(k)] = v;
     const kindRaw = String(normalized.tipo || normalized.type || normalized.grupo_tipo || "").toLowerCase();
-    const group = String(normalized.projeto || normalized.grupo || normalized.fundo || normalized.banco || normalized.credor || "").trim();
-    const modality = String(normalized.modalidade || normalized.produto || normalized.linha || normalized.operacao || "").trim();
-    const overdue = toNum(normalized.vencido || normalized.valor_vencido || normalized.overdue);
-    const upcoming = toNum(normalized.a_vencer || normalized.avencer || normalized.valor_a_vencer || normalized.upcoming);
+    const group = String(normalized.projeto || normalized.grupo || normalized.fundo || normalized.banco || normalized.credor || normalized.instituicao || "").trim();
+    const modality = String(normalized.modalidade || normalized.produto || normalized.linha || normalized.operacao || normalized.tipo_operacao || "").trim();
+    const overdue = toNum(normalized.vencido || normalized.valor_vencido || normalized.overdue || normalized.atrasado);
+    const upcoming = toNum(normalized.a_vencer || normalized.avencer || normalized.valor_a_vencer || normalized.upcoming || normalized.vincendo);
     const total = toNum(normalized.total || normalized.saldo_devedor || normalized.valor_total) || overdue + upcoming;
     const inferredType = kindRaw.includes("fidc") ? "fidc" : kindRaw.includes("banco") || kindRaw.includes("banc") ? "bancario" : group.toLowerCase().includes("fidc") ? "fidc" : group ? "bancario" : "";
     if (!inferredType || !group || !modality || total <= 0) continue;
@@ -190,36 +210,44 @@ async function rowsFromExcel(buf: Buffer) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(Uint8Array.from(buf) as any);
   const worksheet = workbook.worksheets[0];
-  const headers: string[] = [];
-  const rows: Array<Record<string, unknown>> = [];
-  worksheet.getRow(1).eachCell((cell, col) => { headers[col - 1] = String(cell.value || "").trim(); });
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    const obj: Record<string, unknown> = {};
-    headers.forEach((header, idx) => {
-      const cell = row.getCell(idx + 1);
-      obj[header] = cell.text || cell.value || "";
-    });
-    if (Object.values(obj).some((v) => String(v || "").trim() !== "")) rows.push(obj);
+  const rowsMatrix: string[][] = [];
+  worksheet.eachRow((row) => {
+    const values: string[] = [];
+    row.eachCell({ includeEmpty: true }, (cell) => values.push(String(cell.text || cell.value || "").trim()));
+    rowsMatrix.push(values);
   });
+  const headerIndex = rowsMatrix.findIndex((row) => looksLikeHeader(row));
+  const idx = headerIndex >= 0 ? headerIndex : 0;
+  const headers = (rowsMatrix[idx] || []).map((v) => String(v || "").trim());
+  const rows: Array<Record<string, unknown>> = [];
+  for (let i = idx + 1; i < rowsMatrix.length; i++) {
+    const line = rowsMatrix[i];
+    const obj: Record<string, unknown> = {};
+    headers.forEach((header, j) => { obj[header] = line[j] ?? ""; });
+    if (Object.values(obj).some((v) => String(v || "").trim() !== "")) rows.push(obj);
+  }
   return rows;
+}
+
+function rowsFromCsv(buf: Buffer) {
+  const txt = buf.toString("utf-8");
+  const lines = txt.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  const headerIndex = lines.findIndex((line) => looksLikeHeader(line.split(/[;,]/).map((s) => s.trim())));
+  const idx = headerIndex >= 0 ? headerIndex : 0;
+  const delimiter = detectCsvDelimiter(lines[idx] || lines[0] || ",");
+  const cols = (lines[idx] || "").split(delimiter).map((s) => s.trim());
+  return lines.slice(idx + 1).map((line) => {
+    const parts = line.split(delimiter);
+    const row: Record<string, unknown> = {};
+    cols.forEach((c, i) => { row[c] = parts[i] ?? ""; });
+    return row;
+  });
 }
 
 export async function parseUploadedFile(file: File) {
   const buf = Buffer.from(await file.arrayBuffer());
   const name = file.name.toLowerCase();
-  if (name.endsWith(".csv")) {
-    const txt = buf.toString("utf-8");
-    const [head, ...lines] = txt.split(/\r?\n/).filter(Boolean);
-    const cols = head.split(",").map((s) => s.trim());
-    const rows = lines.map((line) => {
-      const parts = line.split(",");
-      const row: Record<string, unknown> = {};
-      cols.forEach((c, i) => { row[c] = parts[i] ?? ""; });
-      return row;
-    });
-    return fromRows(rows);
-  }
+  if (name.endsWith(".csv")) return fromRows(rowsFromCsv(buf));
   if (name.endsWith(".pdf")) return fromPdfBuffer(buf);
   const rows = await rowsFromExcel(buf);
   return fromRows(rows);
@@ -240,6 +268,7 @@ export function validateParsedUpload(kind: string, parsed: ParsedUpload) {
     if (parsed.debt_rows.filter((row) => row.type === "fidc").length === 0 && parsed.contas_receber <= 0 && parsed.extrato_bancario <= 0) errors.push("Base FIDC sem dívida reconhecida.");
     if (parsed.debt_rows.some((row) => row.type === "bancario")) warnings.push("A base FIDC contém linhas classificadas como bancário; revisar arquivo.");
   }
+  if (parsed.quality === "partial") warnings.push("Leitura parcial: considere usar o template oficial para maior confiabilidade.");
 
   return { errors, warnings };
 }
