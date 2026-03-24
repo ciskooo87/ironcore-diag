@@ -60,27 +60,9 @@ export function UploadHistoryForm({ action, kind, label, defaultDate, templateHr
       method="post"
       encType="multipart/form-data"
       className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-sm"
-      onSubmit={async (e) => {
-        e.preventDefault();
+      onSubmit={() => {
         setSubmitting(true);
         setError(null);
-        const form = e.currentTarget;
-        try {
-          const res = await fetch(form.action, {
-            method: "POST",
-            body: new FormData(form),
-            credentials: "same-origin",
-            redirect: "follow",
-            cache: "no-store",
-            headers: { "x-diag-client": "upload-form" },
-          });
-          if (!res.ok) throw new Error(`upload_failed_${res.status}`);
-          window.location.href = res.url;
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "upload_failed");
-        } finally {
-          setSubmitting(false);
-        }
       }}
     >
       <div className="flex items-center justify-between gap-3">
