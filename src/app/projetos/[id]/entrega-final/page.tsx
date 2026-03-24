@@ -4,7 +4,7 @@ import { RightRail } from "@/components/diag-panels";
 import { PrintButton } from "@/components/PrintButton";
 import { ValidationMatrix } from "@/components/ValidationMatrix";
 import { DeliveryVersionDiff } from "@/components/DeliveryVersionDiff";
-import { DeliverablePreviewCard } from "@/components/DeliverablePreviewCard";
+import { DeliverablePreviewPanel } from "@/components/DeliverablePreviewPanel";
 import { StepGuidance, WorkflowChecklist } from "@/components/diag-workflow-ui";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
@@ -264,20 +264,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
               <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Abrir histórico</Link>
             </div>
 
-            <section className="mt-6 rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-              <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Preview dos deliverables</div>
-              <h2 className="mt-2 text-xl font-semibold text-white">Saídas prontas para revisão</h2>
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <DeliverablePreviewCard title="Relatório executivo" description="Versão HTML pronta para leitura, impressão e exportação." href={`/api/projects/${id}/pdf/`} tone="cyan" previewable />
-                <DeliverablePreviewCard title="Planilha analítica" description="Workbook com KPIs, dívida, DRE, DFC e fluxo de caixa." href={`/api/projects/${id}/xlsx/`} tone="emerald" />
-                <DeliverablePreviewCard title="Resumo executivo DOCX" description="Documento enxuto para diretoria e cliente." href={`/api/projects/${id}/docx/`} tone="violet" />
-                <DeliverablePreviewCard title="Apresentação PPTX" description="Deck para reunião, comitê ou apresentação consultiva." href={`/api/projects/${id}/pptx/`} tone="amber" />
-              </div>
-              <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/30 p-3">
-                <div className="mb-3 text-sm font-medium text-white">Preview inline do relatório executivo</div>
-                <iframe src={`/api/projects/${id}/pdf/`} title="Preview do relatório executivo" className="h-[680px] w-full rounded-xl border border-slate-800 bg-white" />
-              </div>
-            </section>
+            <DeliverablePreviewPanel projectId={id} />
           </section>
         </div>
 
