@@ -28,6 +28,8 @@ type ParsedUpload = {
 
 const MAP: Record<string, keyof Omit<ParsedUpload, "lines" | "quality" | "matchedFields" | "unknownColumns" | "debt_rows" | "warnings"> | null> = {
   faturamento: "faturamento",
+  faturamento_bruto: "faturamento",
+  faturamento_previsto: null,
   receita: "faturamento",
   vendas: "faturamento",
   receita_bruta: "faturamento",
@@ -80,10 +82,32 @@ function toNum(v: unknown) {
 }
 
 function parseBrMoney(input: string): number | null {
-  const cleaned = input.replace(/R\$/gi, "").replace(/\s+/g, "").replace(/\./g, "").replace(/,/g, ".").replace(/[^0-9.-]/g, "");
+  const raw = String(input || "").trim().replace(/R\$/gi, "").replace(/\s+/g, "");
+  if (!raw) return null;
+
+  if (/^-?\d+(\.\d+)?$/.test(raw)) {
+    const n = Number(raw);
+    return Number.isFinite(n) && Math.abs(n) <= 1_000_000_000_000 ? n : null;
+  }
+
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(raw)) {
+    const normalized = raw.replace(/\./g, "").replace(/,/g, ".");
+    const n = Number(normalized);
+    return Number.isFinite(n) && Math.abs(n) <= 1_000_000_000_000 ? n : null;
+  }
+
+  if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(raw)) {
+    const normalized = raw.replace(/,/g, "");
+    const n = Number(normalized);
+    return Number.isFinite(n) && Math.abs(n) <= 1_000_000_000_000 ? n : null;
+  }
+
+  const cleaned = raw.replace(/\./g, "").replace(/,/g, ".").replace(/[^0-9.-]/g, "");
   if (!cleaned) return null;
   const n = Number(cleaned);
-  return Number.isFinite(n) ? n : null;
+  if (!Number.isFinite(n)) return null;
+  if (Math.abs(n) > 1_000_000_000_000) return null;
+  return n;
 }
 
 function extractMonetaryCandidates(line: string): number[] {

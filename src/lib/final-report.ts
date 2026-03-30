@@ -41,10 +41,10 @@ function buildSeriesFromValues(values: number[], startOffset: number) {
   return values.map((value, idx) => ({ period: monthLabel(startOffset + idx), value: Math.round(value) }));
 }
 
-function buildDreStatement(revenueSeries: number[], costRate: number, opexRate: number, financeRate: number) {
+function buildDreStatement(revenueSeries: number[], costRate: number, opexRate: number, financeRate: number, taxRate: number) {
   const periods = revenueSeries.map((_, idx) => monthLabel(idx - revenueSeries.length + 1));
   const receita = revenueSeries.map((v) => Math.round(v));
-  const deducoes = receita.map((v) => Math.round(v * 0.08));
+  const deducoes = receita.map((v) => Math.round(v * taxRate));
   const receitaLiquida = receita.map((v, i) => v - deducoes[i]);
   const custos = receitaLiquida.map((v) => Math.round(v * costRate));
   const lucroBruto = receitaLiquida.map((v, i) => v - custos[i]);
@@ -113,20 +113,44 @@ export async function buildFinalExecutiveReport(project: Project) {
   const faturamentoMensal = aggregate.totals.faturamento / Math.max(aggregate.byKind.historico_faturamento || 1, 1);
   const debtRatio = totalDebt / Math.max(aggregate.totals.faturamento, 1);
   const pressureRatio = pressure / Math.max(aggregate.totals.faturamento, 1);
+  const fp = project.financial_profile || {};
+  const configuredTaxRate = Number(fp.tax_rate);
+  const configuredHistCost = Number(fp.hist_cost_rate);
+  const configuredHistOpex = Number(fp.hist_opex_rate);
+  const configuredHistFinance = Number(fp.hist_finance_rate);
+  const configuredProjCost = Number(fp.proj_cost_rate);
+  const configuredProjOpex = Number(fp.proj_opex_rate);
+  const configuredProjFinance = Number(fp.proj_finance_rate);
+  const configuredHistCollection = Number(fp.hist_collection_rate);
+  const configuredHistPayment = Number(fp.hist_payment_rate);
+  const configuredHistInvest = Number(fp.hist_invest_rate);
+  const configuredProjCollection = Number(fp.proj_collection_rate);
+  const configuredProjPayment = Number(fp.proj_payment_rate);
+  const configuredProjInvest = Number(fp.proj_invest_rate);
+  const configuredOpeningCash = Number(fp.opening_cash);
+
   const histRevenue = Array.from({ length: 12 }, (_, i) => Math.max(faturamentoMensal * (1 - 0.03 * (11 - i)), faturamentoMensal * 0.55));
   const projRevenue = Array.from({ length: 6 }, (_, i) => Math.max(faturamentoMensal * (0.92 + 0.03 * i), faturamentoMensal * 0.6));
-  const costRateHist = Math.min(0.78, Math.max(0.52, 0.62 + Math.max(pressureRatio, 0) * 0.6));
-  const opexRateHist = Math.min(0.34, Math.max(0.18, 0.24 + Math.max(debtRatio - 0.4, 0) * 0.08));
-  const financeRateHist = Math.min(0.16, Math.max(0.04, 0.07 + debtRatio * 0.04));
-  const costRateProj = Math.max(0.5, costRateHist - 0.04);
-  const opexRateProj = Math.max(0.17, opexRateHist - 0.03);
-  const financeRateProj = Math.max(0.035, financeRateHist - 0.015);
+  const taxRate = Number.isFinite(configuredTaxRate) && configuredTaxRate > 0 ? configuredTaxRate : 0.08;
+  const costRateHist = Number.isFinite(configuredHistCost) && configuredHistCost > 0 ? configuredHistCost : Math.min(0.78, Math.max(0.52, 0.62 + Math.max(pressureRatio, 0) * 0.6));
+  const opexRateHist = Number.isFinite(configuredHistOpex) && configuredHistOpex > 0 ? configuredHistOpex : Math.min(0.34, Math.max(0.18, 0.24 + Math.max(debtRatio - 0.4, 0) * 0.08));
+  const financeRateHist = Number.isFinite(configuredHistFinance) && configuredHistFinance > 0 ? configuredHistFinance : Math.min(0.16, Math.max(0.04, 0.07 + debtRatio * 0.04));
+  const costRateProj = Number.isFinite(configuredProjCost) && configuredProjCost > 0 ? configuredProjCost : Math.max(0.5, costRateHist - 0.04);
+  const opexRateProj = Number.isFinite(configuredProjOpex) && configuredProjOpex > 0 ? configuredProjOpex : Math.max(0.17, opexRateHist - 0.03);
+  const financeRateProj = Number.isFinite(configuredProjFinance) && configuredProjFinance > 0 ? configuredProjFinance : Math.max(0.035, financeRateHist - 0.015);
+  const histCollectionRate = Number.isFinite(configuredHistCollection) && configuredHistCollection > 0 ? configuredHistCollection : 0.78;
+  const histPaymentRate = Number.isFinite(configuredHistPayment) && configuredHistPayment > 0 ? configuredHistPayment : 0.83;
+  const histInvestRate = Number.isFinite(configuredHistInvest) && configuredHistInvest >= 0 ? configuredHistInvest : 0.05;
+  const projCollectionRate = Number.isFinite(configuredProjCollection) && configuredProjCollection > 0 ? configuredProjCollection : 0.86;
+  const projPaymentRate = Number.isFinite(configuredProjPayment) && configuredProjPayment > 0 ? configuredProjPayment : 0.74;
+  const projInvestRate = Number.isFinite(configuredProjInvest) && configuredProjInvest >= 0 ? configuredProjInvest : 0.04;
+  const openingCash = Number.isFinite(configuredOpeningCash) && configuredOpeningCash >= 0 ? configuredOpeningCash : 280000;
 
-  const dreHist = buildDreStatement(histRevenue, costRateHist, opexRateHist, financeRateHist);
-  const dreProj = buildDreStatement(projRevenue, costRateProj, opexRateProj, financeRateProj);
-  const dfcHist = buildCashStatement(histRevenue, 0.78, 0.83, financeRateHist, 0.05, 280000, -11);
-  const dfcProj = buildCashStatement(projRevenue, 0.86, 0.74, financeRateProj, 0.04, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
-  const projectedCash = buildCashStatement(projRevenue, 0.9, 0.71, financeRateProj, 0.05, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
+  const dreHist = buildDreStatement(histRevenue, costRateHist, opexRateHist, financeRateHist, taxRate);
+  const dreProj = buildDreStatement(projRevenue, costRateProj, opexRateProj, financeRateProj, taxRate);
+  const dfcHist = buildCashStatement(histRevenue, histCollectionRate, histPaymentRate, financeRateHist, histInvestRate, openingCash, -11);
+  const dfcProj = buildCashStatement(projRevenue, projCollectionRate, projPaymentRate, financeRateProj, projInvestRate, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
+  const projectedCash = buildCashStatement(projRevenue, projCollectionRate, projPaymentRate, financeRateProj, projInvestRate, dfcHist.rows[dfcHist.rows.length - 1].values.at(-1) || 180000, 0);
   const debtTable = buildDebtTable(aggregate.debtRows, aggregate.totals.endividamentoBancos, aggregate.totals.endividamentoFidc);
 
   const overdueDebt = debtTable.reduce((sum, row) => sum + row.overdue, 0);

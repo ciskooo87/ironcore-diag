@@ -10,9 +10,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ code: string }
   const { code } = await ctx.params;
   const user = await getSessionUser();
   const project = await getProjectByCode(code);
-  if (!user || !project) return NextResponse.redirect(publicUrl(req, `/dashboard?error=forbidden`));
+  if (!user || !project) return NextResponse.redirect(publicUrl(req, `/projetos?error=forbidden`));
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return NextResponse.redirect(publicUrl(req, `/dashboard?error=forbidden`));
+  if (!allowed) return NextResponse.redirect(publicUrl(req, `/projetos?error=forbidden`));
   const form = await req.formData();
   const historicalContext = String(form.get("historical_context") || "").trim();
 

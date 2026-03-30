@@ -8,12 +8,22 @@ export function createCsrfToken() {
 
 export async function ensureCsrfCookie() {
   const store = await cookies();
-  return store.get(CSRF_COOKIE)?.value || "";
+  const existing = store.get(CSRF_COOKIE)?.value || "";
+  if (existing) return existing;
+
+  const token = createCsrfToken();
+  store.set(CSRF_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+  });
+  return token;
 }
 
 export async function validateCsrf(form: FormData) {
   const token = String(form.get("csrf_token") || "");
   const store = await cookies();
   const cookie = store.get(CSRF_COOKIE)?.value || "";
-  return !!token && token === cookie;
+  return !!token && !!cookie && token === cookie;
 }

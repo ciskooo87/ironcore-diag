@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 
 const KIND_GUIDANCE: Record<string, string[]> = {
@@ -53,17 +53,47 @@ export function UploadHistoryForm({ action, kind, label, defaultDate, templateHr
     }
   }
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = formRef.current;
+    if (!form) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(action, {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "follow",
+      });
+
+      if (res.redirected && res.url) {
+        window.location.assign(res.url);
+        return;
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "upload_failed");
+      }
+
+      window.location.assign(window.location.pathname + "?saved=1");
+    } catch (err) {
+      setSubmitting(false);
+      setError(err instanceof Error ? err.message : "upload_failed");
+    }
+  }
+
   return (
     <form
       ref={formRef}
-      action={action}
-      method="post"
       encType="multipart/form-data"
       className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-sm"
-      onSubmit={() => {
-        setSubmitting(true);
-        setError(null);
-      }}
+      onSubmit={handleSubmit}
     >
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -97,7 +127,7 @@ export function UploadHistoryForm({ action, kind, label, defaultDate, templateHr
       <input type="hidden" name="upload_kind" value={kind} />
       <div className="mt-4 grid gap-2 md:grid-cols-2">
         <button type="button" onClick={runPreview} disabled={previewing || submitting} className="rounded-2xl border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm text-slate-100 hover:border-slate-600 disabled:opacity-60">{previewing ? "Lendo base..." : "Pré-visualizar leitura"}</button>
-        <button type="submit" disabled={submitting} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15 disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
+        <button type="button" onClick={() => formRef.current?.requestSubmit()} disabled={submitting} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15 disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
       </div>
       {preview ? (
         <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-300">

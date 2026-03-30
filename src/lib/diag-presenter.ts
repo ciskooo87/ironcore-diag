@@ -27,35 +27,89 @@ export async function buildProjectPresentation(project: Project) {
 
   function actionPlan(item: string, i: number) {
     const lower = item.toLowerCase();
-    if (lower.includes("caixa") || lower.includes("car") || lower.includes("cap") || pressure > 0) {
+    const caixaTema = lower.includes("caixa") || lower.includes("car") || lower.includes("cap") || lower.includes("capital de giro") || lower.includes("liquidez");
+    const dividaTema = lower.includes("banco") || lower.includes("fidc") || lower.includes("dívida") || lower.includes("vencido") || lower.includes("endivid");
+    const governancaTema = lower.includes("upload") || lower.includes("leitura") || lower.includes("contexto") || lower.includes("cobertura") || lower.includes("confer");
+
+    if (lower.includes("vencido")) {
       return {
-        what: "Estancar pressão imediata de caixa e reordenar pagamentos críticos",
-        why: `CAP supera CAR em ${Math.abs(pressure).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}, pressionando liquidez operacional.`,
-        who: "CFO / consultor líder / financeiro",
-        when: "Próximos 7 dias",
-        where: "Contas a pagar, contas a receber e comitê de caixa",
-        how: "Criar rotina diária de caixa, travar desembolsos não essenciais, renegociar passivos urgentes e acelerar cobrança dos maiores clientes.",
-        howMuch: "Impacto alto e imediato sobre liquidez",
+        what: "Atacar imediatamente o passivo vencido e reduzir risco de ruptura",
+        why: `Há vencido consolidado de ${overdueDebt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}, com potencial de travar caixa e relacionamento financeiro.`,
+        who: "CFO / tesouraria / sócios",
+        when: "Próximas 72 horas",
+        where: "Credores críticos, bancos e fundos com parcelas em atraso",
+        how: "Separar vencido crítico, negociar standstill pontual, priorizar quitação/repactuação e montar trilha diária de saneamento.",
+        howMuch: "Impacto imediato sobre risco financeiro e continuidade operacional",
       };
     }
-    if (lower.includes("banco") || lower.includes("fidc") || lower.includes("dívida") || debtRatio > 0.6) {
+
+    if (lower.includes("fidc")) {
       return {
-        what: "Reestruturar passivos bancários e exposição em FIDC",
-        why: `Endividamento consolidado de ${debt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} está desalinhado com a capacidade atual de geração de caixa.`,
+        what: "Reduzir dependência de FIDC e renegociar estruturas mais caras",
+        why: `A exposição em FIDC está pressionando margem e reduzindo flexibilidade financeira da operação.`,
+        who: "Sócios / financeiro / consultor líder",
+        when: "Próximos 10 dias",
+        where: "Fundos, cessões e contratos de antecipação",
+        how: "Mapear custo efetivo, revisar elegibilidade das carteiras, reduzir concentração e buscar alternativas menos destrutivas ao caixa.",
+        howMuch: "Redução potencial relevante no custo financeiro recorrente",
+      };
+    }
+
+    if (lower.includes("banco") || lower.includes("endivid") || lower.includes("dívida")) {
+      return {
+        what: "Reestruturar passivos bancários e alongar perfil da dívida",
+        why: `Endividamento consolidado de ${debt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} está acima do conforto para a geração operacional atual.`,
         who: "Sócios / consultor líder / jurídico financeiro",
         when: "Próximos 15 dias",
-        where: "Bancos, fundos e contratos de dívida",
-        how: "Mapear cronograma da dívida, buscar alongamento, carência, revisão de custo e saída de estruturas financeiramente destrutivas.",
+        where: "Bancos, garantias e contratos de dívida",
+        how: "Mapear cronograma completo da dívida, negociar alongamento/carência, revisar custo financeiro e redistribuir peso do curto prazo.",
         howMuch: "Redução potencial relevante no serviço da dívida",
       };
     }
+
+    if (lower.includes("cap") || lower.includes("car") || lower.includes("caixa") || lower.includes("liquidez")) {
+      return {
+        what: "Estancar pressão imediata de caixa e reordenar pagamentos críticos",
+        why: `Há descasamento entre entradas e saídas, com pressão CAP x CAR de ${Math.abs(pressure).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+        who: "CFO / consultor líder / financeiro",
+        when: "Próximos 7 dias",
+        where: "Contas a pagar, contas a receber e comitê de caixa",
+        how: "Implantar rotina diária de caixa, priorizar desembolsos essenciais, renegociar vencimentos urgentes e acelerar cobrança dos maiores recebíveis.",
+        howMuch: "Impacto alto e imediato sobre liquidez",
+      };
+    }
+
+    if (governancaTema) {
+      return {
+        what: "Corrigir base analítica e reforçar governança do diagnóstico",
+        why: "A qualidade da decisão depende de cobertura completa, leitura confiável dos insumos e narrativa validada.",
+        who: "Consultor responsável / operação do projeto / responsável financeiro",
+        when: "Antes da próxima rodada decisória",
+        where: "Fluxo /diag, base histórica e conferência executiva",
+        how: "Revisar uploads, eliminar inconsistências, validar contexto do caso e reconfirmar o consolidado antes da decisão final.",
+        howMuch: "Impacto alto na confiabilidade do diagnóstico",
+      };
+    }
+
+    if (dividaTema || caixaTema) {
+      return {
+        what: "Tratar o vetor financeiro dominante do diagnóstico",
+        why: "O alerta aponta deterioração financeira que exige intervenção específica, não só acompanhamento passivo.",
+        who: "Consultor líder / financeiro / direção",
+        when: "Próxima rodada executiva",
+        where: "Governança financeira e plano de ação do projeto",
+        how: "Abrir frente dedicada para o alerta, definir responsável, meta e critério de reversão do risco.",
+        howMuch: "Impacto potencial alto sobre margem e caixa",
+      };
+    }
+
     return {
       what: `Tratar: ${item}`,
-      why: i === 0 ? "Evitar deterioração do diagnóstico e impacto financeiro imediato." : "Reduzir risco e elevar qualidade da decisão.",
+      why: i === 0 ? "Evitar deterioração adicional do caso e proteger o resultado." : "Reduzir risco e elevar qualidade da decisão executiva.",
       who: i === 0 ? "Responsável do projeto + consultor líder" : "Consultor responsável",
       when: i === 0 ? "Imediato" : "Próxima revisão",
       where: "No fluxo do diagnóstico /diag",
-      how: "Validar evidências, ajustar narrativa e definir ação corretiva.",
+      how: "Validar evidências, ajustar narrativa, definir responsável e acompanhar execução em ciclos curtos.",
       howMuch: i === 0 ? "Impacto financeiro potencial alto" : "Impacto moderado / a confirmar",
     };
   }

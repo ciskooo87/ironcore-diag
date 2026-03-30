@@ -38,6 +38,8 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
   );
 
   const byKind: Record<string, number> = {};
+  const seenKinds = new Set<string>();
+  const seenSignatures = new Set<string>();
   const totals = {
     faturamento: 0,
     contasReceber: 0,
@@ -54,6 +56,19 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     const notes = String(payload.notes || "");
     const match = notes.match(/upload_kind:([a-z_]+)/i);
     const kind = match?.[1] || "historico_indefinido";
+    const signature = [
+      row.business_date,
+      kind,
+      Number(payload.faturamento || 0),
+      Number(payload.contas_receber || 0),
+      Number(payload.contas_pagar || 0),
+      Number(payload.extrato_bancario || 0),
+      Number(payload.duplicatas || 0),
+      Array.isArray(payload.debt_rows) ? payload.debt_rows.length : 0,
+    ].join("::");
+    if (seenKinds.has(kind) || seenSignatures.has(signature)) continue;
+    seenKinds.add(kind);
+    seenSignatures.add(signature);
     byKind[kind] = (byKind[kind] || 0) + 1;
 
     totals.faturamento += Number(payload.faturamento || 0);
@@ -61,23 +76,30 @@ export async function getHistoricalUploadAggregate(projectId: string): Promise<H
     totals.contasPagar += Number(payload.contas_pagar || 0);
     totals.extratoBancario += Number(payload.extrato_bancario || 0);
     totals.duplicatas += Number(payload.duplicatas || 0);
-    if (kind === "historico_endividamento_bancos") totals.endividamentoBancos += Number(payload.contas_pagar || payload.duplicatas || 0);
-    if (kind === "historico_endividamento_fidc") totals.endividamentoFidc += Number(payload.contas_receber || payload.extrato_bancario || 0);
 
     const debtRows = Array.isArray(payload.debt_rows) ? (payload.debt_rows as Record<string, unknown>[]) : [];
+    let debtTotalForRow = 0;
     for (const item of debtRows) {
-      const type = String(item.type || kind === "historico_endividamento_fidc" ? "fidc" : "bancario") as "fidc" | "bancario";
+      const type = String(item.type || (kind === "historico_endividamento_fidc" ? "fidc" : "bancario")) as "fidc" | "bancario";
       const group = String(item.group || "Não classificado");
       const modality = String(item.modality || "Não classificado");
       const overdue = Number(item.overdue || 0);
       const upcoming = Number(item.upcoming || 0);
       const total = Number(item.total || overdue + upcoming || 0);
+      debtTotalForRow += total;
       const key = `${type}::${group}::${modality}`;
       const current = debtMap.get(key) || { type, group, modality, overdue: 0, upcoming: 0, total: 0 };
       current.overdue += overdue;
       current.upcoming += upcoming;
       current.total += total;
       debtMap.set(key, current);
+    }
+
+    if (kind === "historico_endividamento_bancos") {
+      totals.endividamentoBancos += debtRows.length ? debtTotalForRow : Number(payload.contas_pagar || payload.duplicatas || 0);
+    }
+    if (kind === "historico_endividamento_fidc") {
+      totals.endividamentoFidc += debtRows.length ? debtTotalForRow : Number(payload.contas_receber || payload.extrato_bancario || 0);
     }
   }
 
