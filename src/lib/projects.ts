@@ -16,6 +16,20 @@ export type FinancialProfile = {
   float_days: number;
   tac: number;
   cost_per_boleto: number;
+  tax_rate?: number;
+  hist_cost_rate?: number;
+  hist_opex_rate?: number;
+  hist_finance_rate?: number;
+  proj_cost_rate?: number;
+  proj_opex_rate?: number;
+  proj_finance_rate?: number;
+  hist_collection_rate?: number;
+  hist_payment_rate?: number;
+  hist_invest_rate?: number;
+  proj_collection_rate?: number;
+  proj_payment_rate?: number;
+  proj_invest_rate?: number;
+  opening_cash?: number;
 };
 
 export type Project = {
@@ -38,6 +52,7 @@ export type Project = {
   normalization_status?: string;
   final_diagnosis?: Record<string, unknown>;
   final_diagnosis_status?: string;
+  archived_at?: string | null;
 };
 
 export type OnboardingCheck = {
@@ -46,25 +61,25 @@ export type OnboardingCheck = {
   done: boolean;
 };
 
-const BASE_SELECT = "id, code, name, cnpj, legal_name, partners, segment, timezone, account_plan, project_summary, financial_profile, supplier_classes, workflow_state, historical_context, ai_attention_points, normalization_payload, normalization_status, final_diagnosis, final_diagnosis_status";
+const BASE_SELECT = "id, code, name, cnpj, legal_name, partners, segment, timezone, account_plan, project_summary, financial_profile, supplier_classes, workflow_state, historical_context, ai_attention_points, normalization_payload, normalization_status, final_diagnosis, final_diagnosis_status, archived_at::text";
 
-export async function listProjects() {
+export async function listProjects(includeArchived = false) {
   try {
-    const q = await dbQuery<Project>(`select ${BASE_SELECT} from projects order by created_at desc`);
+    const q = await dbQuery<Project>(`select ${BASE_SELECT} from projects ${includeArchived ? "" : "where archived_at is null"} order by created_at desc`);
     return q.rows;
   } catch {
     return [] as Project[];
   }
 }
 
-export async function listProjectsForUser(email: string, role: string) {
-  if (role === "admin_master" || role === "diretoria" || role === "head") return listProjects();
+export async function listProjectsForUser(email: string, role: string, includeArchived = false) {
+  if (role === "admin_master" || role === "diretoria" || role === "head") return listProjects(includeArchived);
   try {
     const q = await dbQuery<Project>(
       `select p.${BASE_SELECT} from projects p
        join project_permissions pp on pp.project_id = p.id
        join users u on u.id = pp.user_id
-       where u.email = $1
+       where u.email = $1 ${includeArchived ? "" : "and p.archived_at is null"}
        order by p.created_at desc`,
       [email.toLowerCase()]
     );
@@ -74,11 +89,11 @@ export async function listProjectsForUser(email: string, role: string) {
   }
 }
 
-export async function getProjectByCode(code: string) {
+export async function getProjectByCode(code: string, includeArchived = true) {
   try {
     const normalized = String(code).trim();
     const numeric = normalized.match(/^0+\d+$/) ? String(Number(normalized)) : normalized;
-    const q = await dbQuery<Project>(`select ${BASE_SELECT} from projects where code::text = $1 or code::text = $2`, [normalized, numeric]);
+    const q = await dbQuery<Project>(`select ${BASE_SELECT} from projects where (code::text = $1 or code::text = $2) ${includeArchived ? "" : "and archived_at is null"}`, [normalized, numeric]);
     return q.rows[0] || null;
   } catch {
     return null;
@@ -122,6 +137,36 @@ export function getProjectOnboardingChecks(project: Project): OnboardingCheck[] 
 
 export function isProjectOnboardingComplete(project: Project) {
   return getProjectOnboardingChecks(project).every((item) => item.done);
+}
+
+export async function deleteProjectByCode(code: string) {
+  const normalized = String(code).trim();
+  const numeric = normalized.match(/^0+\d+$/) ? String(Number(normalized)) : normalized;
+  await dbQuery(`update projects set archived_at = now(), updated_at = now() where code::text=$1 or code::text=$2`, [normalized, numeric]);
+}
+
+export async function restoreProjectByCode(code: string) {
+  const normalized = String(code).trim();
+  const numeric = normalized.match(/^0+\d+$/) ? String(Number(normalized)) : normalized;
+  await dbQuery(`update projects set archived_at = null, updated_at = now() where code::text=$1 or code::text=$2`, [normalized, numeric]);
+}
+
+export async function purgeProjectByCode(code: string) {
+  const normalized = String(code).trim();
+  const numeric = normalized.match(/^0+\d+$/) ? String(Number(normalized)) : normalized;
+  const projectQ = await dbQuery<{ id: string }>(`select id from projects where code::text=$1 or code::text=$2 limit 1`, [normalized, numeric]);
+  const projectId = projectQ.rows[0]?.id;
+  if (!projectId) return;
+
+  await dbQuery(`delete from historical_diagnosis_validations where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from project_workflow_events where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from sop_step_status where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from project_alerts where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from project_permissions where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from daily_entries where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from ai_inference_runs where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from project_delivery_versions where project_id=$1`, [projectId]).catch(() => null);
+  await dbQuery(`delete from projects where id=$1`, [projectId]);
 }
 
 export async function updateProjectByCode(code: string, input: {
