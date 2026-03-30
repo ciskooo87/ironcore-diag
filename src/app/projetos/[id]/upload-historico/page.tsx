@@ -47,9 +47,9 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
       status={`Cobertura: ${DIAG_BASE_KINDS.length - workflow.missingKinds.length}/${DIAG_BASE_KINDS.length} bases`}
-      cta={<Link href={`/projetos/${id}/contexto/`} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Avançar para relato</Link>}
+      cta={<Link href={`/projetos/${id}/contexto/`} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-100 hover:bg-cyan-400/15">Avançar para relato</Link>}
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Upload realizado.</div> : null}
           {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error === 'upload_validation' ? 'A base enviada não atendeu às regras mínimas do tipo selecionado.' : query.error}</div> : null}
@@ -58,7 +58,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Bases obrigatórias</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Upload histórico do projeto</h2>
             <p className="mt-2 text-sm text-slate-400">Suba as bases certas, já categorizadas. CAR = Contas a Receber. CAP = Contas a Pagar.</p>
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="mt-5 grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
               {kinds.map(([kind, label]) => (
                 <UploadHistoryForm key={kind} action={appPath(`/api/projects/${id}/daily/upload/`)} kind={kind} label={label} defaultDate={todayInSaoPauloISO()} templateHref={`/api/projects/${id}/daily/upload/template/?kind=${kind}`} />
               ))}
@@ -94,7 +94,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
                 return (
                   <div key={entry.id} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
                     <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{entry.business_date}</div>
-                    <div className="mt-2 font-medium text-white">{String(payload.notes || "Upload histórico")}</div>
+                    <div className="mt-2 break-words font-medium leading-6 text-white">{String(payload.notes || "Upload histórico")}</div>
                     <div className="mt-2 text-slate-400">Qualidade do parser: {String(payload.parser_meta?.quality || 'n/a')}</div>
                     {payload.parser_meta?.warnings?.length ? <div className="mt-2 text-xs text-amber-300">⚠ {payload.parser_meta.warnings[0]}</div> : null}
                   </div>

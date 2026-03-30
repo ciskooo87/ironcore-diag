@@ -32,12 +32,12 @@ export function AttentionList({ items }: { items: Array<{ level: string; title: 
       </div>
       <div className="mt-4 space-y-3">
         {items.map((item) => (
-          <div key={`${item.level}-${item.title}`} className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+          <div key={`${item.level}-${item.title}`} className="min-w-0 rounded-2xl border border-slate-800 bg-slate-950/30 p-4 md:p-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.level === "Crítico" ? "bg-rose-500/15 text-rose-200" : item.level === "Atenção" ? "bg-amber-500/15 text-amber-200" : "bg-yellow-500/15 text-yellow-100"}`}>{item.level}</span>
-              <div className="font-medium text-white">{item.title}</div>
+              <div className="break-words font-medium leading-6 text-white">{item.title}</div>
             </div>
-            <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-3">
+            <div className="mt-3 grid gap-2 text-sm leading-6 text-slate-300 xl:grid-cols-3">
               <div><span className="text-slate-500">Impacto:</span> {item.impact}</div>
               <div><span className="text-slate-500">Origem:</span> {item.origin}</div>
               <div><span className="text-slate-500">Recomendação:</span> {item.recommendation}</div>

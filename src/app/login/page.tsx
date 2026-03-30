@@ -6,7 +6,7 @@ import { DiagPublicShell } from "@/components/DiagPublicShell";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const user = await getSessionUser();
-  if (user) redirect("/dashboard");
+  if (user) redirect("/projetos");
 
   const params = await searchParams;
   const csrf = await ensureCsrfCookie();

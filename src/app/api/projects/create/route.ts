@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const projectSummary = String(form.get("project_summary") || "").trim();
 
   if (!name || !cnpj || !legalName || !segment) {
-    return NextResponse.redirect(publicUrl(req, "/dashboard?error=required"));
+    return NextResponse.redirect(publicUrl(req, "/projetos?error=required"));
   }
 
   const code = await uniqueProjectCodeFromName(name);

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const password = String(form.get("password") || "");
   const user = await authenticate(email, password);
   if (!user) return NextResponse.redirect(publicUrl(req, "/login?error=1"));
-  const res = NextResponse.redirect(publicUrl(req, "/dashboard/"));
+  const res = NextResponse.redirect(publicUrl(req, "/projetos/"));
   const cookiePath = (process.env.APP_BASE_PATH || "/").trim() || "/";
   res.cookies.set(AUTH_COOKIE, encodeSession(user), { httpOnly: true, sameSite: "lax", secure: true, path: cookiePath, maxAge: 60 * 60 * 12 });
   return res;

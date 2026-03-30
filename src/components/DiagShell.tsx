@@ -5,7 +5,7 @@ import { appPath } from "@/lib/app-path";
 import { WORKFLOW_STEPS } from "@/lib/diag-workflow";
 
 const NAV = [
-  { key: "overview", label: "🧭 Visão Geral", href: "/dashboard" },
+  { key: "overview", label: "🧭 Projetos", href: "/projetos" },
   { key: "inputs", label: "📊 Dados & Inputs", href: "/upload-historico/" },
   { key: "ia", label: "🧠 Diagnóstico IA", href: "/diagnostico/" },
   { key: "alerts", label: "⚠️ Pontos de Atenção", href: "/conferencia/" },
@@ -21,9 +21,43 @@ function scoreTone(score: number) {
   return "text-rose-200 border-rose-400/30 bg-rose-400/10";
 }
 
-export function DiagShell({ user, title, subtitle, children, project, active, score = 0, status = "Em estruturação", cta }: { user: SessionUser; title: string; subtitle?: string; children: ReactNode; project?: { name: string; code: string; client?: string; workflowState?: string }; active?: string; score?: number; status?: string; cta?: ReactNode; }) {
-  const projectBase = project ? `/projetos/${project.code}` : "";
+function navHref(itemHref: string, projectCode?: string) {
+  if (itemHref === "/admin/" || itemHref === "/projetos") return itemHref;
+  if (!projectCode) return "/projetos/";
+  return `/projetos/${projectCode}${itemHref}`;
+}
 
+function workflowHref(stepKey: string, projectCode?: string) {
+  if (!projectCode) {
+    return stepKey === "novo_projeto" ? "/projetos/novo/" : "/projetos/";
+  }
+
+  const projectBase = `/projetos/${projectCode}`;
+  switch (stepKey) {
+    case "novo_projeto":
+      return "/projetos/novo/";
+    case "cadastro":
+      return `${projectBase}/cadastro/`;
+    case "upload_historico":
+      return `${projectBase}/upload-historico/`;
+    case "relato_historico":
+      return `${projectBase}/contexto/`;
+    case "normalizacao":
+      return `${projectBase}/normalizacao/`;
+    case "conferencia_normalizacao":
+      return `${projectBase}/conferencia/`;
+    case "montagem_diagnostico":
+    case "analise_ia":
+      return `${projectBase}/diagnostico/`;
+    case "validacao_humana":
+    case "entrega_final":
+      return `${projectBase}/entrega-final/`;
+    default:
+      return projectBase;
+  }
+}
+
+export function DiagShell({ user, title, subtitle, children, project, active, score = 0, status = "Em estruturação", cta }: { user: SessionUser; title: string; subtitle?: string; children: ReactNode; project?: { name: string; code: string; client?: string; workflowState?: string }; active?: string; score?: number; status?: string; cta?: ReactNode; }) {
   return (
     <main className="min-h-screen bg-[#0F172A] text-slate-100">
       <div className="mx-auto max-w-[1600px] px-3 py-4 md:px-5">
@@ -32,28 +66,14 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
           <div className="mt-2 text-lg font-semibold text-white">IRONCORE /diag</div>
           <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
             {NAV.map((item) => {
-              const href = item.href === "/dashboard" || item.href === "/admin/" ? item.href : `${projectBase}${item.href}`;
+              const href = navHref(item.href, project?.code);
               const isActive = active === item.key;
               return <Link key={item.key} href={href} className={`whitespace-nowrap rounded-2xl border px-3 py-2 text-xs ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300"}`}>{item.label}</Link>;
             })}
           </div>
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {WORKFLOW_STEPS.map((step) => {
-              const stepHref = project ? (() => {
-                switch (step.key) {
-                  case "novo_projeto": return "/projetos/novo/";
-                  case "cadastro": return `${projectBase}/cadastro/`;
-                  case "upload_historico": return `${projectBase}/upload-historico/`;
-                  case "relato_historico": return `${projectBase}/contexto/`;
-                  case "normalizacao": return `${projectBase}/normalizacao/`;
-                  case "conferencia_normalizacao": return `${projectBase}/conferencia/`;
-                  case "montagem_diagnostico":
-                  case "analise_ia": return `${projectBase}/diagnostico/`;
-                  case "validacao_humana":
-                  case "entrega_final": return `${projectBase}/entrega-final/`;
-                  default: return `${projectBase}/`;
-                }
-              })() : "/projetos/novo/";
+              const stepHref = workflowHref(step.key, project?.code);
               return (
                 <Link key={step.key} href={stepHref} className={`whitespace-nowrap rounded-xl border px-3 py-2 text-xs ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
                   {step.label}
@@ -73,7 +93,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
 
             <nav className="space-y-2">
               {NAV.map((item) => {
-                const href = item.href === "/dashboard" || item.href === "/admin/" ? item.href : `${projectBase}${item.href}`;
+                const href = navHref(item.href, project?.code);
                 const isActive = active === item.key;
                 return (
                   <Link key={item.key} href={href} className={`block rounded-2xl border px-3 py-3 text-sm transition ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>
@@ -87,21 +107,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Pipeline</div>
               <div className="mt-3 space-y-2 text-xs">
                 {WORKFLOW_STEPS.map((step) => {
-                  const stepHref = project ? (() => {
-                    switch (step.key) {
-                      case "novo_projeto": return "/projetos/novo/";
-                      case "cadastro": return `${projectBase}/cadastro/`;
-                      case "upload_historico": return `${projectBase}/upload-historico/`;
-                      case "relato_historico": return `${projectBase}/contexto/`;
-                      case "normalizacao": return `${projectBase}/normalizacao/`;
-                      case "conferencia_normalizacao": return `${projectBase}/conferencia/`;
-                      case "montagem_diagnostico":
-                      case "analise_ia": return `${projectBase}/diagnostico/`;
-                      case "validacao_humana":
-                      case "entrega_final": return `${projectBase}/entrega-final/`;
-                      default: return `${projectBase}/`;
-                    }
-                  })() : "/projetos/novo/";
+                  const stepHref = workflowHref(step.key, project?.code);
                   return (
                     <Link key={step.key} href={stepHref} className={`block rounded-xl border px-3 py-2 ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
                       {step.label}
@@ -119,7 +125,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
                   <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">controle executivo</div>
                   <h1 className="mt-2 text-2xl font-semibold text-white md:text-3xl">{title}</h1>
                   {subtitle ? <p className="mt-2 max-w-3xl text-sm text-slate-400 md:text-base">{subtitle}</p> : null}
-                  {project ? <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300"><span className="rounded-full border border-slate-700 px-3 py-1">Projeto: {project.name}</span><span className="rounded-full border border-slate-700 px-3 py-1">Cliente: {project.client || project.name}</span><span className="rounded-full border border-slate-700 px-3 py-1">Código: {project.code}</span></div> : null}
+                  {project ? <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Projeto</span><div className="mt-1 truncate text-slate-100">{project.name}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Cliente</span><div className="mt-1 truncate text-slate-100">{project.client || project.name}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Código</span><div className="mt-1 text-slate-100">{project.code}</div></div></div> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Status</div><div className="mt-1 font-medium text-white">{status}</div></div>

@@ -2,7 +2,7 @@ export function ValidationMatrix({ hasInference, validations }: { hasInference: 
   const latest = validations[0];
   const decisionLabel = latest?.decision === 'aprovado' ? 'Aprovado' : latest?.decision === 'ajustar' ? 'Ajustar' : latest?.decision === 'bloquear' ? 'Bloqueado' : 'Pendente';
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
+    <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-950/30 p-4 md:p-5">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Matriz de validação</div>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[560px] text-sm">

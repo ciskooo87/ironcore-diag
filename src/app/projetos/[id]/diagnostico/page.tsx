@@ -30,14 +30,14 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
       status={workflow.latestDiagnosis ? "Análise IA gerada" : workflow.readyForAi ? "Pronto para rodar IA" : "Aguardando fechamento das etapas anteriores"}
-      cta={<form action={appPath(`/api/projects/${id}/historical-diagnosis/run/`)} method="post"><button type="submit" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Rodar análise IA</button></form>}
+      cta={<form action={appPath(`/api/projects/${id}/historical-diagnosis/run/`)} method="post"><button type="submit" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-100 hover:bg-cyan-400/15">Rodar análise IA</button></form>}
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Análise IA gerada com sucesso.</div> : null}
           {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 2xl:grid-cols-2">
             <ExecutiveNarrative title="Montagem do caso">
               <p>O diagnóstico junta cadastro, relato, bases históricas, normatização e conferência em uma leitura única.</p>
               <p>{presentation.narrative}</p>
