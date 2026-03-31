@@ -48,9 +48,9 @@ export function StepGuidance({
   nextLabel?: string;
 }) {
   return (
-    <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-      <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Guia da etapa</div>
-      <h2 className="mt-2 text-xl font-semibold text-white">{title}</h2>
+    <section className="rounded-3xl border border-slate-800 bg-slate-950/20 p-5 md:p-6">
+      <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Próximo passo</div>
+      <h2 className="mt-2 text-lg font-semibold text-white">{title}</h2>
       <p className="mt-3 text-sm leading-7 text-slate-300">{description}</p>
       {nextHref && nextLabel ? (
         <div className="mt-4">

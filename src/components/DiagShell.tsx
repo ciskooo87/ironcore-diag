@@ -28,32 +28,20 @@ function navHref(itemHref: string, projectCode?: string) {
 }
 
 function workflowHref(stepKey: string, projectCode?: string) {
-  if (!projectCode) {
-    return stepKey === "novo_projeto" ? "/projetos/novo/" : "/projetos/";
-  }
-
+  if (!projectCode) return stepKey === "novo_projeto" ? "/projetos/novo/" : "/projetos/";
   const projectBase = `/projetos/${projectCode}`;
   switch (stepKey) {
-    case "novo_projeto":
-      return "/projetos/novo/";
-    case "cadastro":
-      return `${projectBase}/cadastro/`;
-    case "upload_historico":
-      return `${projectBase}/upload-historico/`;
-    case "relato_historico":
-      return `${projectBase}/contexto/`;
-    case "normalizacao":
-      return `${projectBase}/normalizacao/`;
-    case "conferencia_normalizacao":
-      return `${projectBase}/conferencia/`;
+    case "novo_projeto": return "/projetos/novo/";
+    case "cadastro": return `${projectBase}/cadastro/`;
+    case "upload_historico": return `${projectBase}/upload-historico/`;
+    case "relato_historico": return `${projectBase}/contexto/`;
+    case "normalizacao": return `${projectBase}/normalizacao/`;
+    case "conferencia_normalizacao": return `${projectBase}/conferencia/`;
     case "montagem_diagnostico":
-    case "analise_ia":
-      return `${projectBase}/diagnostico/`;
+    case "analise_ia": return `${projectBase}/diagnostico/`;
     case "validacao_humana":
-    case "entrega_final":
-      return `${projectBase}/entrega-final/`;
-    default:
-      return projectBase;
+    case "entrega_final": return `${projectBase}/entrega-final/`;
+    default: return projectBase;
   }
 }
 
@@ -74,11 +62,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {WORKFLOW_STEPS.map((step) => {
               const stepHref = workflowHref(step.key, project?.code);
-              return (
-                <Link key={step.key} href={stepHref} className={`whitespace-nowrap rounded-xl border px-3 py-2 text-xs ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
-                  {step.label}
-                </Link>
-              );
+              return <Link key={step.key} href={stepHref} className={`whitespace-nowrap rounded-xl border px-3 py-2 text-xs ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>{step.label}</Link>;
             })}
           </div>
         </div>
@@ -90,29 +74,19 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
               <div className="mt-2 text-xl font-semibold text-white">IRONCORE /diag</div>
               <div className="mt-2 text-sm text-slate-400">Pipeline contínuo de diagnóstico, validação e entrega.</div>
             </div>
-
             <nav className="space-y-2">
               {NAV.map((item) => {
                 const href = navHref(item.href, project?.code);
                 const isActive = active === item.key;
-                return (
-                  <Link key={item.key} href={href} className={`block rounded-2xl border px-3 py-3 text-sm transition ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>
-                    {item.label}
-                  </Link>
-                );
+                return <Link key={item.key} href={href} className={`block rounded-2xl border px-3 py-3 text-sm transition ${isActive ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"}`}>{item.label}</Link>;
               })}
             </nav>
-
             <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/30 p-3">
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Pipeline</div>
               <div className="mt-3 space-y-2 text-xs">
                 {WORKFLOW_STEPS.map((step) => {
                   const stepHref = workflowHref(step.key, project?.code);
-                  return (
-                    <Link key={step.key} href={stepHref} className={`block rounded-xl border px-3 py-2 ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>
-                      {step.label}
-                    </Link>
-                  );
+                  return <Link key={step.key} href={stepHref} className={`block rounded-xl border px-3 py-2 ${project?.workflowState === step.key ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100" : "border-slate-800 bg-slate-950/20 text-slate-400 hover:border-slate-700 hover:bg-slate-900/50"}`}>{step.label}</Link>;
                 })}
               </div>
             </div>
@@ -125,12 +99,12 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
                   <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">controle executivo</div>
                   <h1 className="mt-2 text-2xl font-semibold text-white md:text-3xl">{title}</h1>
                   {subtitle ? <p className="mt-2 max-w-3xl text-sm text-slate-400 md:text-base">{subtitle}</p> : null}
-                  {project ? <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3"><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Projeto</span><div className="mt-1 truncate text-slate-100">{project.name}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Cliente</span><div className="mt-1 truncate text-slate-100">{project.client || project.name}</div></div><div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-3 py-2"><span className="text-slate-500">Código</span><div className="mt-1 text-slate-100">{project.code}</div></div></div> : null}
+                  {project ? <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300"><span className="rounded-full border border-slate-800 bg-slate-950/30 px-3 py-1.5"><span className="text-slate-500">Projeto:</span> {project.name}</span><span className="rounded-full border border-slate-800 bg-slate-950/30 px-3 py-1.5"><span className="text-slate-500">Cliente:</span> {project.client || project.name}</span><span className="rounded-full border border-slate-800 bg-slate-950/30 px-3 py-1.5"><span className="text-slate-500">Código:</span> {project.code}</span></div> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm"><div className="text-xs uppercase tracking-[0.18em] text-slate-500">Status</div><div className="mt-1 font-medium text-white">{status}</div></div>
-                  <div className={`rounded-2xl border px-4 py-3 text-center ${scoreTone(score)}`}><div className="text-xs uppercase tracking-[0.18em]">Score geral</div><div className="mt-1 text-2xl font-semibold">{score}</div></div>
-                  {cta ? <div>{cta}</div> : null}
+                  <div className={`rounded-2xl border px-4 py-3 text-center ${scoreTone(score)}`}><div className="text-xs uppercase tracking-[0.18em]">Score</div><div className="mt-1 text-xl font-semibold">{score}</div></div>
+                  {cta ? <div className="flex flex-wrap gap-2">{cta}</div> : null}
                   <form action={appPath("/api/auth/logout/")} method="post"><button type="submit" className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">Sair</button></form>
                 </div>
               </div>

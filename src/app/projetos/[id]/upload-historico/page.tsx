@@ -68,8 +68,9 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Cobertura</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Checklist das bases históricas</h2>
+            <p className="mt-2 text-sm text-slate-400">Use esta etapa só para confirmar cobertura e qualidade de upload. O restante do fluxo continua no relato e na conferência.</p>
             <div className="mt-4">
-              <WorkflowChecklist items={workflow.checklist.slice(0, 3)} />
+              <WorkflowChecklist items={workflow.checklist.slice(0, 3)} compact />
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
               {kinds.map(([kind, label]) => {
