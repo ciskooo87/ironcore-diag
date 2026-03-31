@@ -33,7 +33,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
   const project = await getProjectByCode(id);
   if (!project) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
   const entries = await listDailyEntries(project.id, 100);
   const uploads = entries.filter((e) => String((e.payload || {}).notes || "").includes("upload_kind:historico_"));
   const presentation = await buildProjectPresentation(project);
@@ -66,8 +66,8 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
             </div>
           </section>
 
-          <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Cobertura</div>
+          <section className="rounded-3xl border border-white/8 bg-[#141414] p-5 md:p-6">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-[#C8FF00]">Cobertura</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Checklist das bases históricas</h2>
             <p className="mt-2 text-sm text-slate-400">Use esta etapa só para confirmar cobertura e qualidade de upload. O restante do fluxo continua no relato e na conferência.</p>
             <div className="mt-4">

@@ -15,9 +15,9 @@ export default async function ConferenciaPage({ params, searchParams }: { params
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Conferência" active="alerts"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Conferência" active="alerts"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Conferência" active="alerts"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Conferência" active="alerts"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
   const presentation = await buildProjectPresentation(project);
   const aggregate = await getHistoricalUploadAggregate(project.id);
   const savedPayload = (project.normalization_payload || {}) as any;
