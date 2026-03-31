@@ -12,10 +12,10 @@ function money(value: number) {
 
 function MetricCard({ title, value, hint }: { title: string; value: string; hint?: string }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-950/30 p-4 md:p-5">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{title}</div>
-      <div className="mt-3 break-words text-2xl font-semibold leading-tight text-white md:text-3xl">{value}</div>
-      {hint ? <div className="mt-3 text-xs leading-5 text-slate-400">{hint}</div> : null}
+    <div className="min-w-0 rounded-2xl border border-white/8 bg-black/20 p-4 md:p-5">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-[#6B6B6B]">{title}</div>
+      <div className="mt-3 break-words text-2xl font-semibold leading-tight text-[#FAFAF7] md:text-3xl">{value}</div>
+      {hint ? <div className="mt-3 text-xs leading-5 text-[rgba(250,250,247,0.55)]">{hint}</div> : null}
     </div>
   );
 }
@@ -28,6 +28,8 @@ export function NormalizationReview({ payload }: { payload?: NormalizationPayloa
 
   return (
     <div className="space-y-4">
+      {payload?.stale ? <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">A tela está mostrando o consolidado atual dos uploads porque a normatização salva estava vazia ou desatualizada. Regerar a normatização sincroniza esse payload.</div> : null}
+
       <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
         <MetricCard title="Uploads" value={String(uploads.total || 0)} hint={`Última base: ${uploads.latestBusinessDate || "-"}`} />
         <MetricCard title="Faturamento" value={money(Number(financials.faturamento || 0))} />
@@ -38,19 +40,19 @@ export function NormalizationReview({ payload }: { payload?: NormalizationPayloa
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 md:p-5">
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Cobertura das bases</div>
+        <div className="rounded-2xl border border-white/8 bg-black/20 p-4 md:p-5">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-[#6B6B6B]">Cobertura das bases</div>
           <div className="mt-3 flex flex-wrap gap-2 text-xs leading-5">
-            {(uploads.coverageKinds || []).map((item) => <span key={item} className="max-w-full break-all rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-emerald-100">{item}</span>)}
-            {!(uploads.coverageKinds || []).length ? <span className="text-slate-500">Sem cobertura consolidada.</span> : null}
+            {(uploads.coverageKinds || []).map((item) => <span key={item} className="max-w-full break-all rounded-full border border-[rgba(200,255,0,0.25)] bg-[rgba(200,255,0,0.08)] px-3 py-1 text-[#C8FF00]">{item}</span>)}
+            {!(uploads.coverageKinds || []).length ? <span className="text-[#6B6B6B]">Sem cobertura consolidada.</span> : null}
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4 md:p-5">
-          <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Checkpoints</div>
-          <div className="mt-3 space-y-3 text-sm text-slate-300">
-            <div><span className="text-slate-500">Contexto registrado:</span> {checkpoints.hasContext ? "sim" : "não"}</div>
-            <div><span className="text-slate-500">Pronto para IA:</span> {checkpoints.readyForAi ? "sim" : "não"}</div>
-            <div><span className="text-slate-500">Bases faltantes:</span> {(uploads.missingKinds || []).length ? uploads.missingKinds?.join(", ") : "nenhuma"}</div>
+        <div className="rounded-2xl border border-white/8 bg-black/20 p-4 md:p-5">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-[#6B6B6B]">Checkpoints</div>
+          <div className="mt-3 space-y-3 text-sm text-[rgba(250,250,247,0.72)]">
+            <div><span className="text-[#6B6B6B]">Contexto registrado:</span> {checkpoints.hasContext ? "sim" : "não"}</div>
+            <div><span className="text-[#6B6B6B]">Pronto para IA:</span> {checkpoints.readyForAi ? "sim" : "não"}</div>
+            <div><span className="text-[#6B6B6B]">Bases faltantes:</span> {(uploads.missingKinds || []).length ? uploads.missingKinds?.join(", ") : "nenhuma"}</div>
           </div>
         </div>
       </div>
