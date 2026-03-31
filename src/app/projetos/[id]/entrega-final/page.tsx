@@ -16,6 +16,7 @@ import { getLatestHistoricalDiagnosis } from "@/lib/historical-diagnosis";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist } from "@/lib/diag-workflow";
 import { listDeliveryVersions } from "@/lib/delivery-versions";
+import { StatusCallout } from "@/components/StatusCallout";
 
 type ReportRow = { period: string; value: string | number };
 type StatementRow = { label: string; values: number[] };
@@ -177,8 +178,8 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
     <DiagShell user={user} title="Validação humana e entrega final" subtitle="Fechamento do diagnóstico com leitura executiva, demonstrativos financeiros, gráficos, decisão humana auditável e documento exportável." active="document" project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }} score={presentation.overallScore} status={workflow.readyForFinalDelivery ? "Pronto para entrega final" : "Aguardando validação humana ou consolidação final"} cta={<div className="flex max-w-full flex-wrap gap-2"><PrintButton /><Link href={`/api/projects/${id}/pdf/`} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-100 hover:bg-cyan-400/15">Relatório executivo</Link><Link href={`/api/projects/${id}/xlsx/`} className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-100 hover:bg-emerald-400/15">Planilha analítica (.xlsx)</Link><Link href={`/api/projects/${id}/docx/`} className="rounded-2xl border border-violet-400/30 bg-violet-400/10 px-4 py-3 text-sm font-medium text-violet-100 hover:bg-violet-400/15">Resumo executivo (.docx)</Link><Link href={`/api/projects/${id}/pptx/`} className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm font-medium text-amber-100 hover:bg-amber-400/15">Apresentação (.pptx)</Link></div>}>
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-4">
-          {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Operação concluída.</div> : null}
-          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
+          {query.saved ? <StatusCallout tone="success">Operação concluída com sucesso.</StatusCallout> : null}
+          {query.error ? <StatusCallout tone="error">Erro na entrega final: {query.error}</StatusCallout> : null}
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Produto final</div>

@@ -3,6 +3,7 @@ import { DiagShell } from "@/components/DiagShell";
 import { ExecutiveNarrative, AttentionList, RightRail } from "@/components/diag-panels";
 import { WorkflowChecklist } from "@/components/diag-workflow-ui";
 import { CopilotPanel } from "@/components/CopilotPanel";
+import { StatusCallout } from "@/components/StatusCallout";
 import { requireUser } from "@/lib/guards";
 import { getProjectByCode } from "@/lib/projects";
 import { canAccessProject } from "@/lib/permissions";

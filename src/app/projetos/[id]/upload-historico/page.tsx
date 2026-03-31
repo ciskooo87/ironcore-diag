@@ -9,6 +9,7 @@ import { appPath } from "@/lib/app-path";
 import { listDailyEntries } from "@/lib/daily";
 import { todayInSaoPauloISO } from "@/lib/time";
 import { UploadHistoryForm } from "@/components/UploadHistoryForm";
+import { StatusCallout } from "@/components/StatusCallout";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { buildWorkflowChecklist, DIAG_BASE_KINDS } from "@/lib/diag-workflow";
 

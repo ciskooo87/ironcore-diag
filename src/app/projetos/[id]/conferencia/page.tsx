@@ -8,6 +8,7 @@ import { canAccessProject } from "@/lib/permissions";
 import { appPath } from "@/lib/app-path";
 import { buildProjectPresentation } from "@/lib/diag-presenter";
 import { getHistoricalUploadAggregate } from "@/lib/historical-diagnosis";
+import { StatusCallout } from "@/components/StatusCallout";
 
 export default async function ConferenciaPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
   const user = await requireUser();
