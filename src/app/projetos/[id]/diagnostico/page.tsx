@@ -16,9 +16,9 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-slate-800 bg-[#111827] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
 
@@ -35,7 +35,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
     >
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Análise IA gerada com sucesso.</div> : null}
+          {query.saved ? <StatusCallout tone="success">Análise IA gerada com sucesso.</StatusCallout> : null}
           {query.error ? <StatusCallout tone="error">Erro ao gerar análise IA: {query.error}</StatusCallout> : null}
 
           <div className="grid gap-4 2xl:grid-cols-2">
@@ -53,14 +53,14 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
         </div>
 
         <RightRail title="Prontidão para validação">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Checklist do fluxo</div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <div className="text-xs uppercase tracking-[0.18em] text-[#6B6B6B]">Checklist do fluxo</div>
             <div className="mt-3">
               <WorkflowChecklist items={workflow.checklist.slice(0, 7)} compact />
             </div>
           </div>
           <CopilotPanel endpoint={appPath(`/api/projects/${id}/copilot/`)} />
-          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-700">Ir para validação e entrega final</Link>
+          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-white/8 bg-black/20 px-4 py-3 text-sm text-[rgba(250,250,247,0.78)] hover:border-white/15 hover:text-white">Ir para validação e entrega final</Link>
         </RightRail>
       </div>
     </DiagShell>
