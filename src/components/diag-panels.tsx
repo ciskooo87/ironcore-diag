@@ -69,8 +69,8 @@ export function TimelineCard({ current }: { current: string }) {
 
 export function RightRail({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <aside className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
-      <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Painel lateral</div>
+    <aside className="rounded-3xl border border-white/8 bg-[#141414] p-5 md:p-6">
+      <div className="text-[11px] uppercase tracking-[0.24em] text-[#C8FF00]">Painel lateral</div>
       <h2 className="mt-2 text-xl font-semibold text-white">{title}</h2>
       <div className="mt-4 space-y-4 text-sm text-slate-300">{children}</div>
     </aside>
