@@ -15,7 +15,7 @@ export function DeliverablePreviewPanel({ projectId }: { projectId: string }) {
       type: "Workbook",
       href: `${base}/xlsx/`,
       preview: false,
-      note: "Arquivo para análise detalhada em Excel/Numbers/LibreOffice.",
+      note: "Arquivo para análise detalhada e conferência dos demonstrativos.",
     },
     {
       title: "Resumo executivo (.docx)",
@@ -57,3 +57,4 @@ export function DeliverablePreviewPanel({ projectId }: { projectId: string }) {
     </section>
   );
 }
+

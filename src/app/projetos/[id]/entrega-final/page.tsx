@@ -133,7 +133,7 @@ function StatementTable({ title, statement, fallbackSeries, kind }: { title: str
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950/30 p-5 overflow-x-auto">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{title}</div>
-      {!resolved ? <div className="mt-4 text-sm text-slate-500">Demonstrativo não consolidado.</div> : (
+      {!resolved ? <div className="mt-4 text-sm text-slate-500">Demonstrativo ainda não consolidado para esta entrega.</div> : (
         <table className="mt-4 min-w-[780px] w-full text-sm">
           <thead>
             <tr className="text-slate-400">

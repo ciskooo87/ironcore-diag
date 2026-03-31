@@ -36,7 +36,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Análise IA gerada com sucesso.</div> : null}
-          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error}</div> : null}
+          {query.error ? <StatusCallout tone="error">Erro ao gerar análise IA: {query.error}</StatusCallout> : null}
 
           <div className="grid gap-4 2xl:grid-cols-2">
             <ExecutiveNarrative title="Montagem do caso">

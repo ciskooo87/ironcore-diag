@@ -53,7 +53,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           {query.saved ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">Upload realizado.</div> : null}
-          {query.error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">Erro: {query.error === 'upload_validation' ? 'A base enviada não atendeu às regras mínimas do tipo selecionado.' : query.error}</div> : null}
+          {query.error ? <StatusCallout tone="error">{query.error === 'upload_validation' ? 'A base enviada não atendeu às regras mínimas do tipo selecionado.' : `Erro no upload: ${query.error}`}</StatusCallout> : null}
 
           <section className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Bases obrigatórias</div>

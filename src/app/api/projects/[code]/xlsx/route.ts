@@ -20,6 +20,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
   if (!allowed) return new NextResponse("forbidden", { status: 403 });
 
   const finalDiagnosis = (project.final_diagnosis || {}) as FinalDiagnosisPayload;
+  if (!finalDiagnosis.executiveReport) return new NextResponse("entrega_final_pendente", { status: 409 });
   const report = finalDiagnosis.executiveReport || {};
   const actions5w2h = Array.isArray(finalDiagnosis.actions5w2h)
     ? finalDiagnosis.actions5w2h.map((item) => ({

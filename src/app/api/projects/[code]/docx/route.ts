@@ -14,6 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
   const allowed = await canAccessProject(user, project.id);
   if (!allowed) return new NextResponse("forbidden", { status: 403 });
   const finalDiagnosis = (project.final_diagnosis || {}) as FinalDiagnosisPayload;
+  if (!finalDiagnosis.executiveReport) return new NextResponse("entrega_final_pendente", { status: 409 });
   const report = finalDiagnosis.executiveReport || {};
   const actions5w2h = Array.isArray(finalDiagnosis.actions5w2h) ? finalDiagnosis.actions5w2h : [];
   const buffer = await buildExecutiveDocx({ projectName: project.name, client: project.legal_name, score: Number(finalDiagnosis.score || 0) || undefined, report, actions5w2h });
