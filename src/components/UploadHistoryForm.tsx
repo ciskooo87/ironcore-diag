@@ -89,20 +89,20 @@ export function UploadHistoryForm({ action, kind, label, defaultDate, templateHr
   }
 
   return (
-    <form ref={formRef} encType="multipart/form-data" className="rounded-2xl border border-white/8 bg-black/20 p-4 text-sm" onSubmit={handleSubmit}>
-      <div className="flex items-center justify-between gap-3">
-        <div>
+    <form ref={formRef} encType="multipart/form-data" className="min-w-0 rounded-2xl border border-white/8 bg-black/20 p-4 text-sm overflow-hidden" onSubmit={handleSubmit}>
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <div className="text-xs uppercase tracking-[0.18em] text-[#6B6B6B]">Base histórica</div>
-          <div className="mt-1 font-medium text-white">{label}</div>
+          <div className="mt-1 break-words font-medium text-white">{label}</div>
         </div>
-        <div className="rounded-full border border-white/8 px-3 py-1 text-xs text-[rgba(250,250,247,0.75)]">{label}</div>
+        <div className="max-w-[45%] break-words rounded-full border border-white/8 px-3 py-1 text-xs leading-4 text-[rgba(250,250,247,0.75)]">{label}</div>
       </div>
-      <div className="mt-3 rounded-xl border border-white/8 bg-black/30 px-3 py-3 text-xs text-[rgba(250,250,247,0.55)]">{guidance.map((item) => <div key={item}>• {item}</div>)}</div>
+      <div className="mt-3 rounded-xl border border-white/8 bg-black/30 px-3 py-3 text-xs leading-5 text-[rgba(250,250,247,0.55)] break-words">{guidance.map((item) => <div key={item}>• {item}</div>)}</div>
       <div className="mt-3"><Link href={templateHref} className="inline-flex rounded-xl border border-[rgba(200,255,0,0.25)] bg-[rgba(200,255,0,0.08)] px-3 py-2 text-xs text-[#C8FF00] hover:bg-[rgba(200,255,0,0.12)]">Baixar template oficial</Link></div>
-      <div className="mt-4 grid gap-2">
+      <div className="mt-4 grid min-w-0 gap-2">
         <label className="grid gap-1"><span className="text-xs text-[#6B6B6B]">Data de referência</span><input name="business_date" type="date" defaultValue={defaultDate} required className="rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[#FAFAF7]" /></label>
-        <label className="grid gap-1"><span className="text-xs text-[#6B6B6B]">Arquivo</span><input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[rgba(250,250,247,0.75)]" /></label>
-        <label className="grid gap-1"><span className="text-xs text-[#6B6B6B]">Observações</span><input name="notes" placeholder="Ex.: base fechada pelo financeiro, versão revisada" className="rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[#FAFAF7]" /></label>
+        <label className="grid min-w-0 gap-1"><span className="text-xs text-[#6B6B6B]">Arquivo</span><input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="w-full min-w-0 rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[rgba(250,250,247,0.75)]" /></label>
+        <label className="grid min-w-0 gap-1"><span className="text-xs text-[#6B6B6B]">Observações</span><input name="notes" placeholder="Ex.: base fechada pelo financeiro, versão revisada" className="w-full min-w-0 rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[#FAFAF7]" /></label>
       </div>
       <input type="hidden" name="upload_kind" value={kind} />
       <div className="mt-4 grid gap-2 md:grid-cols-2">

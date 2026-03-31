@@ -59,7 +59,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
             <div className="text-[11px] uppercase tracking-[0.24em] text-[#C8FF00]">Bases obrigatórias</div>
             <h2 className="mt-2 text-xl font-semibold text-white">Upload histórico do projeto</h2>
             <p className="mt-2 text-sm text-[rgba(250,250,247,0.58)]">Suba as bases certas, já categorizadas. CAR = Contas a Receber. CAP = Contas a Pagar.</p>
-            <div className="mt-5 grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+            <div className="mt-5 grid gap-3 2xl:grid-cols-2">
               {kinds.map(([kind, label]) => (
                 <UploadHistoryForm key={kind} action={appPath(`/api/projects/${id}/daily/upload/`)} kind={kind} label={label} defaultDate={todayInSaoPauloISO()} templateHref={`/api/projects/${id}/daily/upload/template/?kind=${kind}`} />
               ))}
