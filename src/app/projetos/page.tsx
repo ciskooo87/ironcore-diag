@@ -24,18 +24,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     <DiagShell
       user={user}
       title="Projetos em andamento"
-      subtitle="Escolha o projeto certo para continuar a operação sem se perder no fluxo. Cada card já aponta para a próxima etapa útil da jornada."
+      subtitle="Escolha o projeto certo para continuar a operação. A lista abaixo privilegia andamento, estágio atual e próxima ação útil."
       active="overview"
       score={projects.length}
-      status={projects.length ? `${projects.length} projeto${projects.length > 1 ? "s" : ""} ${includeArchived ? "arquivado" : "disponível"}${projects.length > 1 ? "s" : ""}` : includeArchived ? "Sem projetos arquivados" : "Sem projetos disponíveis"}
+      status={projects.length ? `${projects.length} projeto${projects.length > 1 ? "s" : ""} ${includeArchived ? "arquivado" : "ativo"}${projects.length > 1 ? "s" : ""}` : includeArchived ? "Sem projetos arquivados" : "Sem projetos ativos"}
       cta={
         <div className="flex flex-wrap gap-2">
           <Link href="/projetos/novo/" className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 hover:bg-cyan-400/15">Novo projeto</Link>
-          {isAdmin ? (
-            <Link href={includeArchived ? "/projetos" : "/projetos?view=archived"} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">
-              {includeArchived ? "Ver ativos" : "Ver arquivados"}
-            </Link>
-          ) : null}
+          {isAdmin ? <Link href={includeArchived ? "/projetos" : "/projetos?view=archived"} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-sm text-slate-200 hover:border-slate-600">{includeArchived ? "Ver ativos" : "Ver arquivados"}</Link> : null}
         </div>
       }
     >
@@ -56,12 +52,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             return (
               <section key={project.id} className="rounded-3xl border border-slate-800 bg-[#111827] p-5 md:p-6">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Projeto</div>
-                    <h2 className="mt-2 text-xl font-semibold text-white">{project.name}</h2>
-                    <p className="mt-1 text-sm text-slate-400">{project.legal_name}</p>
+                    <h2 className="mt-2 truncate text-xl font-semibold text-white">{project.name}</h2>
+                    <p className="mt-1 truncate text-sm text-slate-400">{project.legal_name}</p>
                   </div>
-                  <span className={`rounded-full border px-3 py-1 text-xs ${statusTone(project.workflow_state)}`}>{stepLabel}</span>
+                  <span className={`shrink-0 rounded-full border px-3 py-1 text-xs ${statusTone(project.workflow_state)}`}>{stepLabel}</span>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
@@ -75,28 +71,30 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <p className="mt-2 line-clamp-4 text-sm text-slate-300">{project.project_summary?.trim() || "Projeto sem resumo preenchido ainda."}</p>
                 </div>
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <Link href={continueHref} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-center text-sm text-cyan-100 hover:bg-cyan-400/15">Continuar projeto</Link>
-                  <Link href={`/projetos/${project.code}/cadastro/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-600">Abrir cadastro</Link>
-                  <Link href={`/projetos/${project.code}/historico/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-600">Ver histórico</Link>
-                  <Link href={`/projetos/${project.code}/entrega-final/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-600">Entrega final</Link>
-                  {isAdmin ? (
-                    <>
-                      <div className="sm:col-span-2">
-                        {project.archived_at ? (
-                          <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/restore/`)} label={`${project.name} (${project.code})`} mode="restore" />
-                        ) : (
-                          <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/delete/`)} label={`${project.name} (${project.code})`} mode="archive" />
-                        )}
-                      </div>
-                      {project.archived_at ? (
-                        <div className="sm:col-span-2">
-                          <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/purge/`)} label={`${project.name} (${project.code})`} mode="purge" />
-                        </div>
-                      ) : null}
-                    </>
-                  ) : null}
+                <div className="mt-4 grid gap-2 sm:grid-cols-[1.2fr_0.8fr]">
+                  <Link href={continueHref} className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-center text-sm text-cyan-100 hover:bg-cyan-400/15">Continuar</Link>
+                  <Link href={`/projetos/${project.code}/cadastro/`} className="rounded-2xl border border-slate-700 bg-slate-950/30 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-600">Abrir</Link>
                 </div>
+
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                  <Link href={`/projetos/${project.code}/historico/`} className="hover:text-slate-200">Histórico</Link>
+                  <span>•</span>
+                  <Link href={`/projetos/${project.code}/entrega-final/`} className="hover:text-slate-200">Entrega final</Link>
+                </div>
+
+                {isAdmin ? (
+                  <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/20 p-3">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Administração</div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {project.archived_at ? (
+                        <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/restore/`)} label={`${project.name} (${project.code})`} mode="restore" compact />
+                      ) : (
+                        <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/delete/`)} label={`${project.name} (${project.code})`} mode="archive" compact />
+                      )}
+                      {project.archived_at ? <ArchiveProjectButton action={appPath(`/api/projects/${project.code}/purge/`)} label={`${project.name} (${project.code})`} mode="purge" compact /> : <div />}
+                    </div>
+                  </div>
+                ) : null}
               </section>
             );
           })}
