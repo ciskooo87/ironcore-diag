@@ -173,7 +173,7 @@ export async function createHistoricalDiagnosis(input: { projectId: string; proj
         content: `Gere o diagnóstico histórico executivo do projeto com base no contexto abaixo. Foque em caixa, dívida, capital de giro, consistência operacional e implicações para decisão:\n${JSON.stringify(prompt)}`,
       },
     ]);
-    provider = "deepseek";
+    provider = "xai";
     model = ai.model;
     latencyMs = ai.latencyMs;
     response = ai.content || fallback;
