@@ -95,21 +95,56 @@ export function UploadHistoryForm({ action, kind, label, defaultDate, templateHr
           <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Base histórica</div>
           <div className="mt-1 break-words font-medium text-[#101828]">{label}</div>
         </div>
-        <div className="max-w-[45%] break-words rounded-full border border-white/8 px-3 py-1 text-xs leading-4 text-[#475467]">{label}</div>
+        <div className="max-w-[45%] break-words rounded-full border border-black/5 bg-white px-3 py-1 text-xs leading-4 text-[#475467]">{label}</div>
       </div>
-      <div className="mt-3 rounded-xl border border-black/5 bg-[#F8FAFC] px-3 py-3 text-xs leading-5 text-[rgba(250,250,247,0.55)] break-words">{guidance.map((item) => <div key={item}>• {item}</div>)}</div>
-      <div className="mt-3"><Link href={templateHref} className="inline-flex rounded-xl border border-[rgba(200,255,0,0.25)] bg-[rgba(200,255,0,0.08)] px-3 py-2 text-xs text-[#0F172A] hover:bg-[rgba(200,255,0,0.12)]">Baixar template oficial</Link></div>
+
+      <div className="mt-3 rounded-xl border border-black/5 bg-white px-3 py-3 text-xs leading-5 text-[#667085] break-words">
+        {guidance.map((item) => <div key={item}>• {item}</div>)}
+      </div>
+
+      <div className="mt-3">
+        <Link href={templateHref} className="inline-flex rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-medium text-[#0F172A] transition hover:border-black/15 hover:bg-[#F8FAFC]">
+          Baixar template oficial
+        </Link>
+      </div>
+
       <div className="mt-4 grid min-w-0 gap-2">
-        <label className="grid gap-1"><span className="text-xs text-[#98A2B3]">Data de referência</span><input name="business_date" type="date" defaultValue={defaultDate} required className="rounded-lg border border-black/5 bg-[#F8FAFC] px-3 py-2 text-[#FAFAF7]" /></label>
-        <label className="grid min-w-0 gap-1"><span className="text-xs text-[#98A2B3]">Arquivo</span><input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="w-full min-w-0 rounded-lg border border-black/5 bg-[#F8FAFC] px-3 py-2 text-[#475467]" /></label>
-        <label className="grid min-w-0 gap-1"><span className="text-xs text-[#98A2B3]">Observações</span><input name="notes" placeholder="Ex.: base fechada pelo financeiro, versão revisada" className="w-full min-w-0 rounded-lg border border-black/5 bg-[#F8FAFC] px-3 py-2 text-[#FAFAF7]" /></label>
+        <label className="grid gap-1">
+          <span className="text-xs text-[#98A2B3]">Data de referência</span>
+          <input name="business_date" type="date" defaultValue={defaultDate} required className="rounded-lg border border-black/10 bg-white px-3 py-2 text-[#101828]" />
+        </label>
+        <label className="grid min-w-0 gap-1">
+          <span className="text-xs text-[#98A2B3]">Arquivo</span>
+          <input name="file" type="file" accept=".csv,.xlsx,.xls,.xlsm,.pdf" required className="w-full min-w-0 rounded-lg border border-black/10 bg-white px-3 py-2 text-[#475467]" />
+        </label>
+        <label className="grid min-w-0 gap-1">
+          <span className="text-xs text-[#98A2B3]">Observações</span>
+          <input name="notes" placeholder="Ex.: base fechada pelo financeiro, versão revisada" className="w-full min-w-0 rounded-lg border border-black/10 bg-white px-3 py-2 text-[#101828] placeholder:text-[#98A2B3]" />
+        </label>
       </div>
+
       <input type="hidden" name="upload_kind" value={kind} />
+
       <div className="mt-4 grid gap-2 md:grid-cols-2">
-        <button type="button" onClick={runPreview} disabled={previewing || submitting} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[rgba(250,250,247,0.8)] hover:border-white/15 disabled:opacity-60">{previewing ? "Lendo base..." : "Pré-visualizar leitura"}</button>
-        <button type="button" onClick={() => formRef.current?.requestSubmit()} disabled={submitting} className="rounded-2xl bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827] disabled:opacity-60">{submitting ? "Enviando base..." : `Enviar ${label}`}</button>
+        <button type="button" onClick={runPreview} disabled={previewing || submitting} className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-[#475467] transition hover:border-black/15 hover:text-[#101828] disabled:opacity-60">
+          {previewing ? "Lendo base..." : "Pré-visualizar leitura"}
+        </button>
+        <button type="button" onClick={() => formRef.current?.requestSubmit()} disabled={submitting} className="rounded-2xl bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827] disabled:opacity-60">
+          {submitting ? "Enviando base..." : `Enviar ${label}`}
+        </button>
       </div>
-      {preview ? <div className="mt-3 rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-xs text-[#475467]"><div className="font-medium text-[#101828]">Preview da leitura</div><div className="mt-2">Qualidade: {preview.parsed.quality}</div><div className="mt-1">Campos reconhecidos: {preview.parsed.matchedFields.join(", ") || "nenhum"}</div><div className="mt-1">Totais lidos: faturamento={preview.parsed.totals.faturamento || 0} · CAR={preview.parsed.totals.contas_receber || 0} · CAP={preview.parsed.totals.contas_pagar || 0} · dívida={preview.parsed.totals.debt_rows || 0} linha(s)</div>{preview.parsed.warnings.length ? <div className="mt-2 text-amber-300">⚠ {preview.parsed.warnings.join(" | ")}</div> : null}{preview.parsed.errors.length ? <div className="mt-2 text-rose-300">✖ {preview.parsed.errors.join(" | ")}</div> : null}</div> : null}
+
+      {preview ? (
+        <div className="mt-3 rounded-2xl border border-black/5 bg-white px-4 py-3 text-xs text-[#475467]">
+          <div className="font-medium text-[#101828]">Preview da leitura</div>
+          <div className="mt-2">Qualidade: {preview.parsed.quality}</div>
+          <div className="mt-1">Campos reconhecidos: {preview.parsed.matchedFields.join(", ") || "nenhum"}</div>
+          <div className="mt-1">Totais lidos: faturamento={preview.parsed.totals.faturamento || 0} · CAR={preview.parsed.totals.contas_receber || 0} · CAP={preview.parsed.totals.contas_pagar || 0} · dívida={preview.parsed.totals.debt_rows || 0} linha(s)</div>
+          {preview.parsed.warnings.length ? <div className="mt-2 text-[#B54708]">⚠ {preview.parsed.warnings.join(" | ")}</div> : null}
+          {preview.parsed.errors.length ? <div className="mt-2 text-[#B42318]">✖ {preview.parsed.errors.join(" | ")}</div> : null}
+        </div>
+      ) : null}
+
       {error ? <div className="mt-3 rounded-2xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318]">Erro: {error}</div> : null}
     </form>
   );

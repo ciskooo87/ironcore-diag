@@ -48,7 +48,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
       status={`Cobertura: ${DIAG_BASE_KINDS.length - workflow.missingKinds.length}/${DIAG_BASE_KINDS.length} bases`}
-      cta={<Link href={`/projetos/${id}/contexto/`} className="rounded-2xl border border-[rgba(200,255,0,0.25)] bg-[rgba(200,255,0,0.08)] px-4 py-3 text-sm font-medium text-[#0F172A] hover:bg-cyan-400/15">Avançar para relato</Link>}
+      cta={<Link href={`/projetos/${id}/contexto/`} className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-[#0F172A] transition hover:border-black/15 hover:bg-[#F8FAFC]">Avançar para relato</Link>}
     >
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
@@ -116,7 +116,7 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Faltas críticas</div>
             <div className="mt-3 space-y-2 text-sm text-[#475467]">
-              {workflow.missingKinds.length ? workflow.missingKinds.map((kind) => <div key={kind} className="rounded-xl border border-white/8 px-3 py-2">{kind}</div>) : <div className="rounded-xl border border-[#ABEFC6] bg-[#ECFDF3] px-3 py-2 text-[#027A48]">Todas as bases obrigatórias foram recebidas.</div>}
+              {workflow.missingKinds.length ? workflow.missingKinds.map((kind) => <div key={kind} className="rounded-xl border border-black/5 bg-white px-3 py-2">{kind}</div>) : <div className="rounded-xl border border-[#ABEFC6] bg-[#ECFDF3] px-3 py-2 text-[#027A48]">Todas as bases obrigatórias foram recebidas.</div>}
             </div>
           </div>
           <StepGuidance title="O que vem depois" description="Com as bases históricas recebidas, o próximo passo é registrar o relato do projeto. É ele que adiciona contexto humano à leitura financeira e prepara a normatização." nextHref={`/projetos/${id}/contexto/`} nextLabel="Ir para relato do projeto" />

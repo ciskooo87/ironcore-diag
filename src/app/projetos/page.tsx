@@ -8,9 +8,9 @@ import { getProjectContinueHref } from "@/lib/project-navigation";
 import { appPath } from "@/lib/app-path";
 
 function statusTone(step?: string) {
-  if (step === "entrega_final") return "border-[rgba(200,255,0,0.25)] bg-[rgba(200,255,0,0.08)] text-[#0F172A]";
-  if (step === "validacao_humana" || step === "analise_ia" || step === "montagem_diagnostico") return "border-amber-400/25 bg-amber-400/10 text-[#B54708]";
-  return "border-white/10 bg-white/5 text-[#FAFAF7]";
+  if (step === "entrega_final") return "border-[#ABEFC6] bg-[#ECFDF3] text-[#027A48]";
+  if (step === "validacao_humana" || step === "analise_ia" || step === "montagem_diagnostico") return "border-[#FEDF89] bg-[#FFFAEB] text-[#B54708]";
+  return "border-black/5 bg-[#F8FAFC] text-[#475467]";
 }
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ deleted?: string; restored?: string; purged?: string; view?: string }> }) {
@@ -35,7 +35,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       {query.purged ? <section className="mb-4 rounded-2xl border border-[#FEDF89] bg-[#FFFAEB] px-4 py-3 text-sm text-[#B54708]">Projeto excluído definitivamente do banco.</section> : null}
 
       {!projects.length ? (
-        <section className="rounded-3xl border border-white/8 bg-[#141414] p-8 text-sm text-[#475467]">
+        <section className="rounded-[28px] border border-black/5 bg-white p-8 text-sm text-[#475467] shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
           {includeArchived ? "Nenhum projeto arquivado." : <>Nenhum projeto disponível para o seu usuário. <Link className="text-[#0F172A]" href="/projetos/novo/">Criar novo projeto</Link>.</>}
         </section>
       ) : (
@@ -49,13 +49,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <div className="min-w-0">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Projeto</div>
                     <h2 className="mt-2 truncate text-xl font-semibold text-[#101828]">{project.name}</h2>
-                    <p className="mt-1 truncate text-sm text-[rgba(250,250,247,0.55)]">{project.legal_name}</p>
+                    <p className="mt-1 truncate text-sm text-[#667085]">{project.legal_name}</p>
                   </div>
                   <span className={`shrink-0 rounded-full border px-3 py-1 text-xs ${statusTone(project.workflow_state)}`}>{stepLabel}</span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-[#475467]">
-                  <span className="rounded-full border border-white/8 px-3 py-1">Código: {project.code}</span>
-                  <span className="rounded-full border border-white/8 px-3 py-1">Segmento: {project.segment || "Não informado"}</span>
+                  <span className="rounded-full border border-black/5 bg-[#F8FAFC] px-3 py-1">Código: {project.code}</span>
+                  <span className="rounded-full border border-black/5 bg-[#F8FAFC] px-3 py-1">Segmento: {project.segment || "Não informado"}</span>
                   {project.archived_at ? <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[#B54708]">Arquivado</span> : null}
                 </div>
                 <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
