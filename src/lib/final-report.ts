@@ -174,8 +174,8 @@ export async function buildFinalExecutiveReport(project: Project) {
   const debtTable = buildDebtTable(aggregate.debtRows, aggregate.totals.endividamentoBancos, aggregate.totals.endividamentoFidc);
 
   const overdueDebt = debtTable.reduce((sum, row) => sum + row.overdue, 0);
-  const executiveSummary = String(ai?.executiveSummary || `A empresa opera sob pressão financeira relevante. O ponto central não é falta de faturamento, mas a incapacidade de converter geração operacional em caixa livre diante do peso do capital de giro e da dívida. O caso exige reorganização financeira com foco em liquidez, disciplina de caixa e estrutura de passivo.`);
-  const scenarioReading = String(ai?.diagnosis || `A leitura consolidada mostra um negócio tensionado por três vetores: pressão de capital de giro, endividamento incompatível com a escala atual e baixa margem de erro na gestão do caixa. A consequência prática é uma operação que reage ao curto prazo, em vez de comandar a própria agenda financeira.`);
+  const executiveSummary = String(ai?.executiveSummary || `A empresa opera sob pressão financeira relevante. O ponto central não está apenas no resultado, mas na dificuldade de transformar geração operacional em caixa livre diante do peso do capital de giro e da dívida. O caso exige reorganização financeira com foco em liquidez, disciplina de caixa e estrutura de passivo.`);
+  const scenarioReading = String(ai?.diagnosis || `A leitura consolidada mostra um negócio tensionado por três vetores: pressão de capital de giro, endividamento incompatível com a escala atual e baixa margem de erro na gestão do caixa. Na prática, a operação passou a reagir ao curto prazo em vez de comandar sua agenda financeira.`);
   const rootCauses = [
     `Estrutura de capital desequilibrada: dívida total estimada em ${money(totalDebt)} para uma receita consolidada de ${money(aggregate.totals.faturamento)}.`,
     `Pressão de capital de giro: CAP supera CAR em ${money(Math.max(pressure, 0))}, comprimindo liquidez e capacidade de priorização.`,
@@ -204,7 +204,7 @@ export async function buildFinalExecutiveReport(project: Project) {
         "Rever custos operacionais e estrutura para recuperar margem e caixa livre.",
         "Separar claramente a estratégia de dívida bancária e FIDC com metas de redução por bloco.",
       ];
-  const conclusion = `O caso é recuperável, mas não por inércia. A empresa precisa simultaneamente reorganizar dívida, reduzir pressão no giro e restaurar disciplina operacional. Sem essas três frentes em paralelo, a tendência é aprofundamento da fragilidade.`;
+  const conclusion = `O caso é recuperável, mas não por inércia. A empresa precisa reorganizar dívida, aliviar a pressão sobre o giro e restaurar disciplina operacional de forma simultânea. Sem essas três frentes em paralelo, a tendência é aprofundamento da fragilidade e perda adicional de capacidade de decisão.`;
 
   return {
     executiveSummary,

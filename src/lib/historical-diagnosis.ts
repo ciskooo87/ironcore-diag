@@ -26,6 +26,10 @@ export type HistoricalUploadAggregate = {
   debtRows: DebtRow[];
 };
 
+function money(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+}
+
 export async function getHistoricalUploadAggregate(projectId: string): Promise<HistoricalUploadAggregate> {
   const q = await dbQuery<{ business_date: string; payload: Record<string, unknown> }>(
     `select business_date::text, payload
@@ -132,17 +136,22 @@ export async function createHistoricalDiagnosis(input: { projectId: string; proj
   };
   const fallback = JSON.stringify({
     diagnosis: pressure > 0
-      ? "A operação apresenta tensão financeira relevante, com pressão de capital de giro e necessidade de reorganização de caixa."
-      : "A leitura histórica não mostra pressão aguda de capital de giro, mas ainda exige validação executiva para fechar diagnóstico.",
+      ? "A operação entrou numa zona de tensão financeira relevante. O ponto crítico não está apenas no resultado contábil, mas na incapacidade de converter atividade operacional em liquidez sustentável, o que exige reorganização imediata do caixa e do passivo."
+      : "A leitura histórica não mostra ruptura aguda de capital de giro, mas ainda indica a necessidade de revisão executiva antes de qualquer conclusão definitiva.",
     risks: [
-      pressure > 0 ? "Pressão potencial de caixa no histórico consolidado." : "Risco moderado condicionado à qualidade da cobertura histórica.",
-      totalDebt > 0 ? "Endividamento exige leitura executiva e priorização por impacto financeiro." : "Estrutura de dívida ainda precisa de validação consolidada.",
+      pressure > 0
+        ? "Risco de compressão de liquidez no curto prazo caso a pressão entre contas a pagar e contas a receber siga sem intervenção gerencial."
+        : "Risco moderado condicionado à qualidade e profundidade da cobertura histórica.",
+      totalDebt > 0
+        ? "Risco de deterioração adicional de margem e caixa pelo peso da estrutura de dívida atual sobre a operação."
+        : "Estrutura de dívida ainda demanda validação consolidada antes de leitura conclusiva.",
     ],
     recommendations: [
-      "Priorizar leitura executiva conectando caixa, dívida e operação.",
-      "Evitar linguagem genérica e transformar achados em decisão objetiva.",
+      "Conectar caixa, dívida e operação numa leitura única para orientar a decisão executiva.",
+      "Definir resposta objetiva para capital de giro e passivo financeiro antes de escalar qualquer decisão operacional.",
+      "Traduzir os achados em plano curto com responsável, prazo e impacto esperado.",
     ],
-    executiveSummary: `O caso sugere necessidade de leitura executiva sobre caixa, dívida e geração operacional. Pressão consolidada: ${pressure}. Dívida consolidada: ${totalDebt}.`,
+    executiveSummary: `O caso exige intervenção executiva sobre liquidez, estrutura de dívida e geração operacional. A pressão consolidada entre CAP e CAR é de ${money(pressure)} e a dívida total estimada atinge ${money(totalDebt)}.`,
   });
 
   let provider = "fallback";
