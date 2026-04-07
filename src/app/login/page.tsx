@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
           <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Produto</div>
-          <h2 className="mt-2 font-['Syne',var(--font-geist-sans)] text-2xl font-bold text-[#FAFAF7]">Diagnóstico com narrativa, IA e validação</h2>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#101828]">Diagnóstico com narrativa, estrutura e validação</h2>
           <div className="mt-6 grid gap-3 md:grid-cols-2 text-sm text-[#475467]">
             <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">📊 Upload e estruturação dos dados com confiança da base.</div>
             <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">🧠 Diagnóstico IA com evidência e contexto.</div>
@@ -37,15 +37,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
         <section className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
           <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Acesso</div>
-          <h2 className="mt-2 font-['Syne',var(--font-geist-sans)] text-3xl font-bold text-[#FAFAF7]">Login</h2>
-          <p className="mt-2 text-sm text-[rgba(250,250,247,0.55)]">Acesso ao produto de diagnóstico histórico</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-[#101828]">Login</h2>
+          <p className="mt-2 text-sm text-[#667085]">Acesso ao produto de diagnóstico histórico</p>
           <form action={appPath("/api/auth/login/")} method="post" className="mt-6 space-y-3">
             <input type="hidden" name="csrf_token" value={csrf} />
-            <input name="email" type="email" placeholder="Email" required className="w-full rounded-lg border border-black/5 bg-[#F8FAFC] px-3 py-3 text-sm" />
-            <input name="password" type="password" placeholder="Senha" required className="w-full rounded-lg border border-black/5 bg-[#F8FAFC] px-3 py-3 text-sm" />
+            <input name="email" type="email" placeholder="Email" required className="w-full rounded-lg border border-black/10 bg-[#F8FAFC] px-3 py-3 text-sm text-[#101828] placeholder:text-[#98A2B3]" />
+            <input name="password" type="password" placeholder="Senha" required className="w-full rounded-lg border border-black/10 bg-[#F8FAFC] px-3 py-3 text-sm text-[#101828] placeholder:text-[#98A2B3]" />
             <button type="submit" className="w-full rounded-lg bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827]">Entrar</button>
           </form>
-          {errorMessage ? <div className="mt-3 rounded-2xl border border-[#FF3B30]/30 bg-[#FF3B30]/10 px-4 py-3 text-sm text-[#ffd1cd]">{errorMessage}</div> : null}
+          {errorMessage ? <div className="mt-3 rounded-2xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318]">{errorMessage}</div> : null}
         </section>
       </section>
     </DiagPublicShell>

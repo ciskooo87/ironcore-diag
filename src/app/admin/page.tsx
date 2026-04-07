@@ -42,7 +42,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <input type="hidden" name="csrf_token" value={csrf} />
           <input name="email" type="email" placeholder="email do usuário" className="bg-white border border-black/10 rounded-lg px-3 py-2" required />
           <input name="new_password" type="text" placeholder="nova senha" className="bg-white border border-black/10 rounded-lg px-3 py-2" required />
-          <button className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-white/15" type="submit">Resetar senha</button>
+          <button className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] transition hover:border-black/10 hover:bg-white hover:text-[#101828]" type="submit">Resetar senha</button>
         </form>
         {q.saved === "password" ? <div className="rounded-2xl border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48] mt-3">Senha atualizada.</div> : null}
         {q.error ? <div className="rounded-2xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318] mt-3">Erro: {q.error}</div> : null}
@@ -53,8 +53,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <div className="mt-4 space-y-2 text-sm">
           {users.map((u) => (
             <div key={u.id} className="flex items-center justify-between rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3">
-              <span>{u.email}</span>
-              <span className="rounded-full border border-white/8 px-3 py-1 text-xs">{u.role}</span>
+              <span className="text-[#101828]">{u.email}</span>
+              <span className="rounded-full border border-black/5 bg-white px-3 py-1 text-xs text-[#475467]">{u.role}</span>
             </div>
           ))}
         </div>
