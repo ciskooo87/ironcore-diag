@@ -148,7 +148,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
 
           <div className="min-w-0 flex-1">
             <header className="surface-elevated mb-4 rounded-[32px] border border-black/5 bg-white p-5 md:p-6">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Controle executivo</div>
                   <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#101828] md:text-3xl">{title}</h1>
@@ -162,8 +162,8 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
                   ) : null}
                 </div>
 
-                <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[420px] xl:max-w-[620px] xl:items-end">
-                  <div className="flex flex-wrap items-stretch gap-3 xl:justify-end">
+                <div className="flex w-full flex-col gap-3 2xl:w-auto 2xl:min-w-[420px] 2xl:max-w-[620px] 2xl:items-end">
+                  <div className="flex flex-wrap items-stretch gap-3 2xl:justify-end">
                     <div className="min-w-[180px] rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm">
                       <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Status</div>
                       <div className="mt-1 font-medium text-[#101828]">{status}</div>
@@ -175,9 +175,9 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
                     </div>
                   </div>
 
-                  {cta ? <div className="flex w-full flex-wrap gap-2 xl:justify-end">{cta}</div> : null}
+                  {cta ? <div className="flex w-full flex-wrap gap-2 2xl:justify-end">{cta}</div> : null}
 
-                  <form action={appPath("/api/auth/logout/")} method="post" className="xl:self-end">
+                  <form action={appPath("/api/auth/logout/")} method="post" className="2xl:self-end">
                     <button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#475467] transition hover:border-black/10 hover:bg-white hover:text-[#101828]">
                       Sair
                     </button>
