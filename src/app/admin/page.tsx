@@ -10,16 +10,16 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const csrf = await ensureCsrfCookie();
 
   if (user.role !== "admin_master") {
-    return <DiagShell user={user} title="Configurações" active="settings"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão administrativa.</div></DiagShell>;
+    return <DiagShell user={user} title="Configurações" active="settings"><div className="rounded-[28px] border border-black/5 bg-white p-5 surface-elevated text-sm text-[#B42318]">Sem permissão administrativa.</div></DiagShell>;
   }
 
   const users = await listUsers();
 
   return (
     <DiagShell user={user} title="Configurações" subtitle="Gestão própria de usuários e acessos do /diag" active="settings" score={0} status="Admin do módulo">
-      <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6 mb-4">
-        <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Configurações</div>
-        <h2 className="mt-2 text-xl font-semibold text-[#101828]">Criar / atualizar usuário</h2>
+      <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7 mb-4">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Configurações</div>
+        <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#101828]">Criar / atualizar usuário</h2>
         <form action={appPath("/api/admin/users/create/")} method="post" className="mt-4 grid md:grid-cols-4 gap-2 text-sm">
           <input type="hidden" name="csrf_token" value={csrf} />
           <input name="email" type="email" placeholder="email" className="bg-white border border-black/10 rounded-lg px-3 py-2" required />
@@ -36,7 +36,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         {q.saved === "user" ? <div className="rounded-2xl border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48] mt-3">Usuário salvo.</div> : null}
       </section>
 
-      <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6 mb-4">
+      <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7 mb-4">
         <h2 className="text-xl font-semibold text-[#101828]">Reset de senha</h2>
         <form action={appPath("/api/admin/users/reset-password/")} method="post" className="mt-4 grid md:grid-cols-3 gap-2 text-sm">
           <input type="hidden" name="csrf_token" value={csrf} />
@@ -48,7 +48,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         {q.error ? <div className="rounded-2xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318] mt-3">Erro: {q.error}</div> : null}
       </section>
 
-      <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
+      <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
         <h2 className="text-xl font-semibold text-[#101828]">Usuários ativos do /diag</h2>
         <div className="mt-4 space-y-2 text-sm">
           {users.map((u) => (
