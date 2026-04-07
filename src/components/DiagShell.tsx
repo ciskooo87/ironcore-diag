@@ -162,20 +162,22 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
                   ) : null}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                  <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm">
-                    <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Status</div>
-                    <div className="mt-1 font-medium text-[#101828]">{status}</div>
+                <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[420px] xl:max-w-[620px] xl:items-end">
+                  <div className="flex flex-wrap items-stretch gap-3 xl:justify-end">
+                    <div className="min-w-[180px] rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm">
+                      <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Status</div>
+                      <div className="mt-1 font-medium text-[#101828]">{status}</div>
+                    </div>
+
+                    <div className={`min-w-[92px] rounded-2xl border px-4 py-3 text-center ${scoreTone(score)}`}>
+                      <div className="text-xs uppercase tracking-[0.18em]">Score</div>
+                      <div className="mt-1 text-xl font-semibold">{score}</div>
+                    </div>
                   </div>
 
-                  <div className={`rounded-2xl border px-4 py-3 text-center ${scoreTone(score)}`}>
-                    <div className="text-xs uppercase tracking-[0.18em]">Score</div>
-                    <div className="mt-1 text-xl font-semibold">{score}</div>
-                  </div>
+                  {cta ? <div className="flex w-full flex-wrap gap-2 xl:justify-end">{cta}</div> : null}
 
-                  {cta ? <div className="flex flex-wrap gap-2">{cta}</div> : null}
-
-                  <form action={appPath("/api/auth/logout/")} method="post">
+                  <form action={appPath("/api/auth/logout/")} method="post" className="xl:self-end">
                     <button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#475467] transition hover:border-black/10 hover:bg-white hover:text-[#101828]">
                       Sair
                     </button>
