@@ -14,7 +14,7 @@ function MetricCard({ title, value, hint }: { title: string; value: string; hint
   return (
     <div className="min-w-0 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
       <div className="text-[11px] uppercase tracking-[0.2em] text-[#98A2B3]">{title}</div>
-      <div className="mt-3 break-words text-2xl font-semibold leading-tight text-[#FAFAF7] md:text-3xl">{value}</div>
+      <div className="mt-3 break-words text-2xl font-semibold leading-tight text-[#101828] md:text-3xl">{value}</div>
       {hint ? <div className="mt-3 text-xs leading-5 text-[rgba(250,250,247,0.55)]">{hint}</div> : null}
     </div>
   );

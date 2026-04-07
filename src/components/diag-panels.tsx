@@ -34,7 +34,7 @@ export function AttentionList({ items }: { items: Array<{ level: string; title: 
         {items.map((item) => (
           <div key={`${item.level}-${item.title}`} className="min-w-0 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.level === "Crítico" ? "bg-rose-500/15 text-rose-200" : item.level === "Atenção" ? "bg-amber-500/15 text-amber-200" : "bg-yellow-500/15 text-yellow-100"}`}>{item.level}</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.level === "Crítico" ? "bg-rose-500/15 text-[#B42318]" : item.level === "Atenção" ? "bg-amber-500/15 text-[#B54708]" : "bg-yellow-500/15 text-[#9A6700]"}`}>{item.level}</span>
               <div className="break-words font-medium leading-6 text-[#101828]">{item.title}</div>
             </div>
             <div className="mt-3 grid gap-2 text-sm leading-6 text-[#475467] xl:grid-cols-3">

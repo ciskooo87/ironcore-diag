@@ -137,15 +137,15 @@ function StatementTable({ title, statement, fallbackSeries, kind }: { title: str
         <table className="mt-4 min-w-[780px] w-full text-sm">
           <thead>
             <tr className="text-[#667085]">
-              <th className="border-b border-white/8 px-3 py-2 text-left">Linha</th>
-              {resolved.periods.map((period) => <th key={period} className="border-b border-white/8 px-3 py-2 text-right">{period}</th>)}
+              <th className="border-b border-black/5 px-3 py-2 text-left">Linha</th>
+              {resolved.periods.map((period) => <th key={period} className="border-b border-black/5 px-3 py-2 text-right">{period}</th>)}
             </tr>
           </thead>
           <tbody>
             {resolved.rows.map((row) => (
               <tr key={row.label}>
                 <td className="border-b border-slate-900 px-3 py-2 font-medium text-[#101828]">{row.label}</td>
-                {row.values.map((value, idx) => <td key={`${row.label}-${idx}`} className={`border-b border-slate-900 px-3 py-2 text-right ${value < 0 ? "text-rose-300" : "text-[#475467]"}`}>{money(value)}</td>)}
+                {row.values.map((value, idx) => <td key={`${row.label}-${idx}`} className={`border-b border-slate-900 px-3 py-2 text-right ${value < 0 ? "text-[#B42318]" : "text-[#475467]"}`}>{money(value)}</td>)}
               </tr>
             ))}
           </tbody>
@@ -160,9 +160,9 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
 
   const validations = await listHistoricalDiagnosisValidations(project.id, 20);
   const finalDiagnosis = (project.final_diagnosis || {}) as { executiveReport?: FinalReport };
@@ -233,10 +233,10 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                       <div key={bucket} className="mt-5">
                         <div className="mb-2 text-sm font-medium text-[#101828]">{bucket === "fidc" ? "FIDC" : "Bancário"}</div>
                         <table className="w-full min-w-[760px] text-sm">
-                          <thead><tr className="text-[#667085]"><th className="border-b border-white/8 px-3 py-2 text-left">Projeto</th><th className="border-b border-white/8 px-3 py-2 text-left">Modalidade</th><th className="border-b border-white/8 px-3 py-2 text-right">Vencido</th><th className="border-b border-white/8 px-3 py-2 text-right">A Vencer</th><th className="border-b border-white/8 px-3 py-2 text-right">Total</th></tr></thead>
+                          <thead><tr className="text-[#667085]"><th className="border-b border-black/5 px-3 py-2 text-left">Projeto</th><th className="border-b border-black/5 px-3 py-2 text-left">Modalidade</th><th className="border-b border-black/5 px-3 py-2 text-right">Vencido</th><th className="border-b border-black/5 px-3 py-2 text-right">A Vencer</th><th className="border-b border-black/5 px-3 py-2 text-right">Total</th></tr></thead>
                           <tbody>
-                            {rows.map((row, idx) => <tr key={`${bucket}-${row.group}-${row.modality}-${idx}`}><td className="border-b border-slate-900 px-3 py-3 font-medium text-[#101828]">{row.group}</td><td className="border-b border-slate-900 px-3 py-3 text-[#475467]">{row.modality}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-rose-300">{money(row.overdue)}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-[#475467]">{money(row.upcoming)}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-[#101828]">{money(row.total)}</td></tr>)}
-                            <tr><td className="px-3 py-3 font-semibold text-[#101828]" colSpan={2}>Total {bucket === "fidc" ? "FIDC" : "Bancário"}</td><td className="px-3 py-3 text-right font-semibold text-rose-300">{money(totalOverdue)}</td><td className="px-3 py-3 text-right font-semibold text-[#344054]">{money(totalUpcoming)}</td><td className="px-3 py-3 text-right font-semibold text-[#101828]">{money(total)}</td></tr>
+                            {rows.map((row, idx) => <tr key={`${bucket}-${row.group}-${row.modality}-${idx}`}><td className="border-b border-slate-900 px-3 py-3 font-medium text-[#101828]">{row.group}</td><td className="border-b border-slate-900 px-3 py-3 text-[#475467]">{row.modality}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-[#B42318]">{money(row.overdue)}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-[#475467]">{money(row.upcoming)}</td><td className="border-b border-slate-900 px-3 py-3 text-right text-[#101828]">{money(row.total)}</td></tr>)}
+                            <tr><td className="px-3 py-3 font-semibold text-[#101828]" colSpan={2}>Total {bucket === "fidc" ? "FIDC" : "Bancário"}</td><td className="px-3 py-3 text-right font-semibold text-[#B42318]">{money(totalOverdue)}</td><td className="px-3 py-3 text-right font-semibold text-[#344054]">{money(totalUpcoming)}</td><td className="px-3 py-3 text-right font-semibold text-[#101828]">{money(total)}</td></tr>
                           </tbody>
                         </table>
                       </div>
@@ -267,8 +267,8 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-white/15">Consolidar entrega final</button></form>
-              <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-white/15">Abrir histórico</Link>
+              <form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-black/10">Consolidar entrega final</button></form>
+              <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-black/10">Abrir histórico</Link>
             </div>
 
             <DeliverablePreviewPanel projectId={id} />
@@ -280,8 +280,8 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
           <StepGuidance title="Critério de fechamento" description="Esta etapa só fecha de verdade quando a leitura executiva estiver consolidada, houver validação humana registrada e o documento final puder ser exportado sem depender de interpretação adicional." />
           <ValidationMatrix hasInference={Boolean(latestDiagnosis)} validations={validations} />
           {latestDiagnosis ? <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate/`)} method="post" className="grid gap-2"><input type="hidden" name="csrf_token" value={csrf} /><input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} /><select name="decision" className="bg-white border border-black/10 rounded-lg px-3 py-2"><option value="aprovado">Aprovar</option><option value="ajustar">Editar</option><option value="bloquear">Rejeitar</option></select><textarea name="note" placeholder="Comentários do responsável" className="bg-white border border-black/10 rounded-lg px-3 py-2 min-h-28" /><button type="submit" className="rounded-2xl border bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827]">Validar decisão</button></form> : null}
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-white/8 px-3 py-3"><div className="font-medium text-[#101828]">{v.decision}</div><div className="text-xs text-[#98A2B3]">{v.validated_at}</div><div className="mt-2 text-[#475467]">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-[#667085]">Nenhuma validação ainda.</div>}</div></div>
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Versões da entrega</div><div className="mt-3 space-y-2 text-sm">{versions.length ? versions.map((v) => <div key={v.id} className="rounded-xl border border-white/8 px-3 py-3"><div className="font-medium text-[#101828]">Versão {v.version_no}</div><div className="text-xs text-[#98A2B3]">{v.generated_at}</div></div>) : <div className="text-[#667085]">Nenhuma versão consolidada ainda.</div>}</div></div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">{v.decision}</div><div className="text-xs text-[#98A2B3]">{v.validated_at}</div><div className="mt-2 text-[#475467]">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-[#667085]">Nenhuma validação ainda.</div>}</div></div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Versões da entrega</div><div className="mt-3 space-y-2 text-sm">{versions.length ? versions.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">Versão {v.version_no}</div><div className="text-xs text-[#98A2B3]">{v.generated_at}</div></div>) : <div className="text-[#667085]">Nenhuma versão consolidada ainda.</div>}</div></div>
           <DeliveryVersionDiff versions={versions as any} />
         </RightRail>
       </div>

@@ -10,9 +10,9 @@ export default async function HistoricoPage({ params }: { params: Promise<{ id: 
   const user = await requireUser();
   const { id } = await params;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Histórico" active="history"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Histórico" active="history"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Histórico" active="history"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Histórico" active="history"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
   const presentation = await buildProjectPresentation(project);
   const events = await listWorkflowEvents(project.id);
 

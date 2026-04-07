@@ -16,9 +16,9 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
 
@@ -60,7 +60,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
             </div>
           </div>
           <CopilotPanel endpoint={appPath(`/api/projects/${id}/copilot/`)} />
-          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-white/15 hover:text-[#101828]">Ir para validação e entrega final</Link>
+          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-black/10 hover:text-[#101828]">Ir para validação e entrega final</Link>
         </RightRail>
       </div>
     </DiagShell>

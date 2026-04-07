@@ -10,7 +10,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const csrf = await ensureCsrfCookie();
 
   if (user.role !== "admin_master") {
-    return <DiagShell user={user} title="Configurações" active="settings"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Sem permissão administrativa.</div></DiagShell>;
+    return <DiagShell user={user} title="Configurações" active="settings"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão administrativa.</div></DiagShell>;
   }
 
   const users = await listUsers();

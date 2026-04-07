@@ -7,7 +7,7 @@ export function ProductHero({ eyebrow, title, description, children }: { eyebrow
         <div className="max-w-3xl">
           <div className="product-eyebrow inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-cyan-200">{eyebrow}</div>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#101828]">{title}</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-300 sm:text-base">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-[#475467] sm:text-base">{description}</p>
         </div>
         {children ? <div className="flex flex-wrap gap-2">{children}</div> : null}
       </div>
@@ -26,9 +26,9 @@ export function StatusPill({ label, tone = "neutral" }: { label: string; tone?: 
 
 export function EmptyState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-[22px] border border-black/5 bg-[#F8FAFC] px-4 py-5 text-sm text-slate-300">
+    <div className="rounded-[22px] border border-black/5 bg-[#F8FAFC] px-4 py-5 text-sm text-[#475467]">
       <div className="font-medium text-[#101828]">{title}</div>
-      <div className="mt-1 text-slate-400">{description}</div>
+      <div className="mt-1 text-[#667085]">{description}</div>
     </div>
   );
 }

@@ -10,7 +10,7 @@ export function AppShell({ title, subtitle, user, children }: { title: string; s
           <div>
             <div className="text-[12px] uppercase tracking-[0.28em] text-[#667085]">IRONCORE DIAG</div>
             <h1 className="text-2xl font-semibold tracking-tight mt-1">{title}</h1>
-            {subtitle ? <p className="text-sm text-slate-400 mt-1">{subtitle}</p> : null}
+            {subtitle ? <p className="text-sm text-[#667085] mt-1">{subtitle}</p> : null}
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             <Link href="/dashboard" className="pill">Dashboard</Link>
