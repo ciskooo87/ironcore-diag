@@ -13,7 +13,7 @@ export function DiagPublicShell({ title, subtitle, children }: { title: string; 
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-                <Image src="/brand/ironcore-symbol.png" alt="IronCore" width={30} height={30} className="h-8 w-8 object-contain" />
+                <Image src="/brand/ironcore-mark.jpg" alt="IronCore" width={30} height={30} className="h-8 w-8 object-contain" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">IronCore Diag</div>
