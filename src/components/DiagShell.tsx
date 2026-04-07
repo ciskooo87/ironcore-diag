@@ -68,7 +68,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_top_left,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#FFFFFF_0%,#F7F8FA_58%,#F7F8FA_100%)]" />
 
       <div className="mx-auto max-w-[1600px] px-4 py-4 md:px-6 lg:px-8">
-        <div className="mb-4 rounded-[28px] border border-black/5 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.05)] lg:hidden">
+        <div className="surface-elevated mb-4 rounded-[28px] border border-black/5 bg-white p-4 lg:hidden">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
               <Image src="/brand/ironcore-symbol.png" alt="IronCore" width={28} height={28} className="h-7 w-7 object-contain" />
@@ -104,7 +104,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
         </div>
 
         <div className="flex gap-5">
-          <aside className="hidden w-[300px] shrink-0 rounded-[32px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] lg:block">
+          <aside className="surface-elevated hidden w-[300px] shrink-0 rounded-[32px] border border-black/5 bg-white p-5 lg:block">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
                 <Image src="/brand/ironcore-symbol.png" alt="IronCore" width={30} height={30} className="h-8 w-8 object-contain" />
@@ -147,7 +147,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
           </aside>
 
           <div className="min-w-0 flex-1">
-            <header className="mb-4 rounded-[32px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
+            <header className="surface-elevated mb-4 rounded-[32px] border border-black/5 bg-white p-5 md:p-6">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Controle executivo</div>

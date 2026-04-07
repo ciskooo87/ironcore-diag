@@ -9,7 +9,7 @@ export function DiagPublicShell({ title, subtitle, children }: { title: string; 
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top_left,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#FFFFFF_0%,#F7F8FA_58%,#F7F8FA_100%)]" />
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
-        <header className="mb-8 rounded-[32px] border border-black/5 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-8">
+        <header className="surface-elevated mb-8 rounded-[32px] border border-black/5 bg-white p-6 md:p-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
