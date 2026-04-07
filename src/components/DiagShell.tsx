@@ -70,8 +70,8 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
       <div className="mx-auto max-w-[1600px] px-4 py-4 md:px-6 lg:px-8">
         <div className="surface-elevated mb-4 rounded-[28px] border border-black/5 bg-white p-4 lg:hidden">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-              <Image src="/brand/ironcore-mark.jpg" alt="IronCore" width={28} height={28} className="h-7 w-7 object-contain" />
+            <div className="flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
+              <Image src="/brand/ironcore-mark.webp" alt="IronCore" width={28} height={28} className="h-9 w-9 object-contain" />
             </div>
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#98A2B3]">IronCore Diag</div>
@@ -106,8 +106,8 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
         <div className="flex gap-5">
           <aside className="surface-elevated hidden w-[300px] shrink-0 rounded-[32px] border border-black/5 bg-white p-5 lg:block">
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-                <Image src="/brand/ironcore-mark.jpg" alt="IronCore" width={30} height={30} className="h-8 w-8 object-contain" />
+              <div className="flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
+                <Image src="/brand/ironcore-mark.webp" alt="IronCore" width={30} height={30} className="h-9 w-9 object-contain" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#98A2B3]">IronCore Diag</div>

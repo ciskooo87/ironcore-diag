@@ -111,8 +111,8 @@ export default async function Home() {
       <nav className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(247,248,250,0.82)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-8 lg:px-10">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.06)]">
-              <Image src="/brand/ironcore-mark.jpg" alt="IronCore" width={28} height={28} className="h-7 w-7 object-contain" />
+            <div className="flex h-[52px] w-[52px] flex-none items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.06)]">
+              <Image src="/brand/ironcore-mark.webp" alt="IronCore" width={28} height={28} className="h-9 w-9 object-contain" />
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold tracking-[0.08em] text-[#111827]">IRONCORE DIAG</div>
@@ -193,7 +193,7 @@ export default async function Home() {
                   </div>
 
                   <div className="flex items-center gap-3 self-start rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
-                    <Image src="/brand/ironcore-mark.jpg" alt="Marca IronCore" width={44} height={44} className="h-11 w-11 rounded-xl object-contain" />
+                    <Image src="/brand/ironcore-mark.webp" alt="Marca IronCore" width={44} height={44} className="h-12 w-12 rounded-xl object-contain p-0.5" />
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#98A2B3]">Entrega</div>
                       <div className="text-sm font-semibold text-[#101828]">Pronta para diretoria</div>
@@ -268,7 +268,7 @@ export default async function Home() {
             <div className="grid gap-4 md:grid-cols-3">
               {painPoints.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-base font-semibold text-[#0F172A] shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+                  <div className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-white text-base font-semibold text-[#0F172A] shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
                     •
                   </div>
                   <p className="mt-5 text-base font-semibold leading-7 text-[#101828]">{item.title}</p>
