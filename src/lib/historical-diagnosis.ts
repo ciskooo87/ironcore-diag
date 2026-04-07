@@ -116,12 +116,33 @@ export async function createHistoricalDiagnosis(input: { projectId: string; proj
   const aggregate = await getHistoricalUploadAggregate(input.projectId);
   if (aggregate.totalUploads === 0) throw new Error("historical_upload_missing");
 
-  const prompt = { projectCode: input.projectCode, projectName: input.projectName, projectSummary: input.projectSummary, aggregate };
+  const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
+  const totalDebt = aggregate.totals.endividamentoBancos + aggregate.totals.endividamentoFidc;
+  const overdueDebt = aggregate.debtRows.reduce((sum, row) => sum + row.overdue, 0);
+  const prompt = {
+    projectCode: input.projectCode,
+    projectName: input.projectName,
+    projectSummary: input.projectSummary,
+    aggregate,
+    metrics: {
+      pressure,
+      totalDebt,
+      overdueDebt,
+    },
+  };
   const fallback = JSON.stringify({
-    diagnosis: aggregate.totalUploads > 0 ? "Base histórica recebida e pronta para revisão humana." : "Sem base histórica.",
-    risks: [aggregate.totals.contasPagar > aggregate.totals.contasReceber ? "Pressão potencial de caixa no histórico consolidado." : "Sem pressão relevante de caixa identificada pela consolidação simples."],
-    recommendations: ["Validar cobertura de faturamento, CAR, CAP e endividamentos.", "Revisar relação entre histórico operacional e relato do projeto para fechar diagnóstico final."],
-    executiveSummary: `Uploads históricos: ${aggregate.totalUploads}. Última base: ${aggregate.latestBusinessDate || "n/a"}.`,
+    diagnosis: pressure > 0
+      ? "A operação apresenta tensão financeira relevante, com pressão de capital de giro e necessidade de reorganização de caixa."
+      : "A leitura histórica não mostra pressão aguda de capital de giro, mas ainda exige validação executiva para fechar diagnóstico.",
+    risks: [
+      pressure > 0 ? "Pressão potencial de caixa no histórico consolidado." : "Risco moderado condicionado à qualidade da cobertura histórica.",
+      totalDebt > 0 ? "Endividamento exige leitura executiva e priorização por impacto financeiro." : "Estrutura de dívida ainda precisa de validação consolidada.",
+    ],
+    recommendations: [
+      "Priorizar leitura executiva conectando caixa, dívida e operação.",
+      "Evitar linguagem genérica e transformar achados em decisão objetiva.",
+    ],
+    executiveSummary: `O caso sugere necessidade de leitura executiva sobre caixa, dívida e geração operacional. Pressão consolidada: ${pressure}. Dívida consolidada: ${totalDebt}.`,
   });
 
   let provider = "fallback";
@@ -133,8 +154,15 @@ export async function createHistoricalDiagnosis(input: { projectId: string; proj
 
   try {
     const ai = await deepseekChat([
-      { role: "system", content: "Você é o motor de diagnóstico histórico do Ironcore. Responda apenas JSON com diagnosis, risks, recommendations e executiveSummary." },
-      { role: "user", content: `Gere o diagnóstico histórico do projeto com base no contexto:\n${JSON.stringify(prompt)}` },
+      {
+        role: "system",
+        content:
+          "Você é o motor de diagnóstico histórico do IronCore. Responda apenas JSON válido. Escreva em português do Brasil, com linguagem de diretoria e tom consultivo premium. Evite jargão de IA, frases vazias e obviedades. Estruture a resposta com os campos diagnosis, risks, recommendations e executiveSummary. diagnosis deve ser um parecer executivo curto, risks deve listar riscos concretos e objetivos, recommendations deve trazer direcionamentos acionáveis, executiveSummary deve ser uma síntese firme e clara. Sempre conecte problema, impacto e decisão.",
+      },
+      {
+        role: "user",
+        content: `Gere o diagnóstico histórico executivo do projeto com base no contexto abaixo. Foque em caixa, dívida, capital de giro, consistência operacional e implicações para decisão:\n${JSON.stringify(prompt)}`,
+      },
     ]);
     provider = "deepseek";
     model = ai.model;

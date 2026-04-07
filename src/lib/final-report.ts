@@ -1,5 +1,5 @@
 import type { Project } from "@/lib/projects";
-import { getHistoricalUploadAggregate } from "@/lib/historical-diagnosis";
+import { getHistoricalUploadAggregate, getLatestHistoricalDiagnosis } from "@/lib/historical-diagnosis";
 
 type SeriesPoint = { period: string; value: number };
 type StatementRow = { label: string; values: number[] };
@@ -106,8 +106,28 @@ function buildDebtTable(rawRows: DebtTableRow[], banksTotal: number, fidcTotal: 
   ];
 }
 
+function parseAiJson(raw?: string | null) {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(raw.slice(start, end + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
 export async function buildFinalExecutiveReport(project: Project) {
   const aggregate = await getHistoricalUploadAggregate(project.id);
+  const latestDiagnosis = await getLatestHistoricalDiagnosis(project.id);
+  const ai = parseAiJson(latestDiagnosis?.response);
   const pressure = aggregate.totals.contasPagar - aggregate.totals.contasReceber;
   const totalDebt = aggregate.totals.endividamentoBancos + aggregate.totals.endividamentoFidc;
   const faturamentoMensal = aggregate.totals.faturamento / Math.max(aggregate.byKind.historico_faturamento || 1, 1);
@@ -154,32 +174,36 @@ export async function buildFinalExecutiveReport(project: Project) {
   const debtTable = buildDebtTable(aggregate.debtRows, aggregate.totals.endividamentoBancos, aggregate.totals.endividamentoFidc);
 
   const overdueDebt = debtTable.reduce((sum, row) => sum + row.overdue, 0);
-  const executiveSummary = `A operação apresenta descasamento material entre geração operacional, pressão de caixa e estrutura de dívida. A receita histórica consolidada indica capacidade limitada para absorver o serviço da dívida e a pressão entre CAP e CAR mantém a liquidez comprimida.`;
-  const scenarioReading = `O diagnóstico mostra três vetores centrais: geração operacional fragilizada, dívida pesada para a escala atual e governança financeira reativa. A empresa não colapsou por ausência de mercado, mas por desalinhamento entre capital, operação e disciplina de caixa.`;
+  const executiveSummary = String(ai?.executiveSummary || `A empresa opera sob pressão financeira relevante. O ponto central não é falta de faturamento, mas a incapacidade de converter geração operacional em caixa livre diante do peso do capital de giro e da dívida. O caso exige reorganização financeira com foco em liquidez, disciplina de caixa e estrutura de passivo.`);
+  const scenarioReading = String(ai?.diagnosis || `A leitura consolidada mostra um negócio tensionado por três vetores: pressão de capital de giro, endividamento incompatível com a escala atual e baixa margem de erro na gestão do caixa. A consequência prática é uma operação que reage ao curto prazo, em vez de comandar a própria agenda financeira.`);
   const rootCauses = [
     `Estrutura de capital desequilibrada: dívida total estimada em ${money(totalDebt)} para uma receita consolidada de ${money(aggregate.totals.faturamento)}.`,
     `Pressão de capital de giro: CAP supera CAR em ${money(Math.max(pressure, 0))}, comprimindo liquidez e capacidade de priorização.`,
     `Custo financeiro relevante: o mix entre bancos e FIDC deteriora margem e previsibilidade de caixa.`,
-    `Ritual de gestão insuficiente: o histórico sugere reação ao caixa do dia, não governança antecipatória.`
+    `Ritual de gestão insuficiente: o histórico sugere reação ao caixa do dia, não governança antecipatória.`,
   ];
   const debtAnalysis = {
     banks: `Dívida bancária consolidada em ${money(aggregate.totals.endividamentoBancos)}. O peso do curto prazo e do custo financeiro aumenta a rigidez operacional.`,
     fidc: `Exposição em FIDC consolidada em ${money(aggregate.totals.endividamentoFidc)}. O uso recorrente dessa estrutura pressiona margem e reduz flexibilidade.`,
-    consolidated: `No consolidado, a dívida está acima do ponto confortável para a geração atual e exige reestruturação + governança de caixa.`
+    consolidated: `No consolidado, a dívida está acima do ponto confortável para a geração atual e exige reestruturação combinada com governança de caixa.`,
   };
   const cashImpact = `O efeito mais imediato aparece no caixa: saldo livre comprimido, baixa tolerância a erro operacional e risco de travamento por vencidos ou serviço da dívida. O vencido consolidado já soma ${money(overdueDebt)}.`;
-  const priorityRisks = [
-    `Risco de ruptura de caixa de curto prazo se o vencido (${money(overdueDebt)}) não for tratado rapidamente.`,
-    `Risco de inadimplência financeira pela incompatibilidade entre dívida e geração operacional.`,
-    `Risco de queda adicional de margem enquanto bancos/FIDC seguirem financiando ineficiência estrutural.`,
-    `Risco de deterioração comercial se a operação continuar girando sob estresse permanente de caixa.`
-  ];
-  const strategicDirection = [
-    "Alongar e reprecificar dívida para reduzir serviço financeiro de curto prazo.",
-    "Estabelecer rotina diária/semanal de caixa com priorização de pagamentos e cobrança.",
-    "Rever custos operacionais e estrutura para recuperar margem e caixa livre.",
-    "Separar claramente a estratégia de dívida bancária e FIDC com metas de redução por bloco."
-  ];
+  const priorityRisks = Array.isArray(ai?.risks) && ai.risks.length
+    ? ai.risks.map((x: unknown) => String(x))
+    : [
+        `Risco de ruptura de caixa de curto prazo se o vencido (${money(overdueDebt)}) não for tratado rapidamente.`,
+        `Risco de inadimplência financeira pela incompatibilidade entre dívida e geração operacional.`,
+        `Risco de queda adicional de margem enquanto bancos/FIDC seguirem financiando ineficiência estrutural.`,
+        `Risco de deterioração comercial se a operação continuar girando sob estresse permanente de caixa.`,
+      ];
+  const strategicDirection = Array.isArray(ai?.recommendations) && ai.recommendations.length
+    ? ai.recommendations.map((x: unknown) => String(x))
+    : [
+        "Alongar e reprecificar dívida para reduzir serviço financeiro de curto prazo.",
+        "Estabelecer rotina diária/semanal de caixa com priorização de pagamentos e cobrança.",
+        "Rever custos operacionais e estrutura para recuperar margem e caixa livre.",
+        "Separar claramente a estratégia de dívida bancária e FIDC com metas de redução por bloco.",
+      ];
   const conclusion = `O caso é recuperável, mas não por inércia. A empresa precisa simultaneamente reorganizar dívida, reduzir pressão no giro e restaurar disciplina operacional. Sem essas três frentes em paralelo, a tendência é aprofundamento da fragilidade.`;
 
   return {
