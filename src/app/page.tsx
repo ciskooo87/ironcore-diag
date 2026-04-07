@@ -1,101 +1,362 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { appPath } from "@/lib/app-path";
+
+const painPoints = [
+  "Faturamento cresce, mas o caixa não acompanha",
+  "Margens inconsistentes sem explicação clara",
+  "Decisões sendo tomadas sem visão consolidada",
+];
+
+const deliveries = [
+  "Identificação dos principais riscos financeiros",
+  "Estimativa de impacto no resultado e no caixa",
+  "Leitura executiva pronta para diretoria",
+  "Plano de ação estruturado (5W2H)",
+];
+
+const workflow = [
+  {
+    step: "01",
+    title: "Envio de dados",
+    description:
+      "Você compartilha sua base financeira — DRE, fluxo de caixa, contas a receber e demais arquivos relevantes.",
+  },
+  {
+    step: "02",
+    title: "Processamento IronCore",
+    description:
+      "A plataforma estrutura, valida e destaca os fatos mais relevantes para leitura executiva.",
+  },
+  {
+    step: "03",
+    title: "Diagnóstico executivo",
+    description:
+      "Você recebe uma leitura consolidada com riscos prioritários, impacto estimado e ações recomendadas.",
+  },
+];
+
+const audiences = [
+  "Empresas com faturamento relevante e pressão de caixa",
+  "CFOs e controllers que precisam de clareza rápida",
+  "Consultorias que precisam padronizar diagnóstico",
+  "Fundos e operações em turnaround",
+];
+
+const differentiators = [
+  "Estruturação automática de informações",
+  "Priorização de riscos por impacto",
+  "Linguagem executiva pronta para decisão",
+  "Rastreabilidade entre dado e conclusão",
+];
+
+const proofs = [
+  "Pressão de caixa não mapeada em 60 dias",
+  "Margem negativa oculta por estrutura comercial",
+  "Dependência crítica de antecipação de recebíveis",
+];
+
+const offerItems = [
+  "Entrega em até 48h",
+  "3 principais riscos",
+  "Impacto estimado",
+  "Plano de ação",
+];
+
+function SectionTag({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="inline-flex items-center rounded-full border border-[rgba(16,24,40,0.08)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#667085] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      {children}
+    </div>
+  );
+}
 
 export default async function Home() {
   const user = await getSessionUser();
   if (user) redirect("/projetos");
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] text-[#FAFAF7]">
-      <nav className="sticky top-0 z-50 border-b border-white/8 bg-[rgba(10,10,10,0.92)] px-5 py-4 backdrop-blur md:px-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <div className="font-['Syne',var(--font-geist-sans)] text-lg font-extrabold tracking-[-0.02em]">IRONCORE <span className="text-[#C8FF00]">DIAG</span></div>
-          <div className="flex items-center gap-4 md:gap-6 text-sm text-[#6B6B6B]">
-            <a href="#como-funciona" className="hover:text-[#FAFAF7]">Como funciona</a>
-            <a href="#precos" className="hover:text-[#FAFAF7]">Preços</a>
-            <Link href={appPath('/login/')} className="rounded-md bg-[#C8FF00] px-4 py-2 font-medium text-[#0A0A0A] hover:bg-[#d6ff4d]">Solicitar diagnóstico</Link>
+    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A]">
+      <nav className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(247,248,250,0.86)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 md:px-8 lg:px-10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.06)]">
+              <Image src="/brand/ironcore-symbol.png" alt="IronCore" width={28} height={28} className="h-7 w-7 object-contain" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold tracking-[0.08em] text-[#111827]">IRONCORE DIAG</div>
+              <div className="text-xs text-[#667085]">Diagnóstico executivo financeiro</div>
+            </div>
           </div>
+
+          <div className="hidden items-center gap-7 text-sm text-[#475467] md:flex">
+            <a href="#como-funciona" className="transition hover:text-[#111827]">Como funciona</a>
+            <a href="#para-quem" className="transition hover:text-[#111827]">Para quem é</a>
+            <a href="#oferta" className="transition hover:text-[#111827]">Oferta</a>
+          </div>
+
+          <Link
+            href={appPath("/login/")}
+            className="rounded-xl bg-[#0F172A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#111827]"
+          >
+            Solicitar diagnóstico
+          </Link>
         </div>
       </nav>
 
-      <section className="mx-auto max-w-5xl px-5 py-20 md:px-10 md:py-24">
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[rgba(200,255,0,0.2)] bg-[rgba(200,255,0,0.08)] px-4 py-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#C8FF00]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#C8FF00]" /> Diagnóstico financeiro com IA
-        </div>
-        <h1 className="max-w-4xl font-['Syne',var(--font-geist-sans)] text-4xl font-extrabold leading-[1.05] tracking-[-0.03em] md:text-6xl">Você envia a base.<br />A IA entrega o <span className="text-[#C8FF00]">diagnóstico.</span></h1>
-        <p className="mt-6 max-w-2xl text-lg font-light leading-8 text-[rgba(250,250,247,0.6)]">Análise histórica completa da sua empresa — gerada por inteligência artificial, validada por executivo, pronta pra apresentar ao sócio ou ao banco. Em minutos.</p>
-        <div className="mt-10 flex flex-wrap gap-4">
-          <Link href={appPath('/login/')} className="rounded-lg bg-[#C8FF00] px-8 py-3 text-sm font-medium text-[#0A0A0A] shadow-[0_8px_24px_rgba(200,255,0,0.25)] hover:-translate-y-0.5 hover:bg-[#d6ff4d]">Solicitar diagnóstico agora</Link>
-          <a href="#output" className="rounded-lg border border-white/8 px-6 py-3 text-sm text-[rgba(250,250,247,0.6)] hover:border-white/20 hover:text-[#FAFAF7]">Ver exemplo de relatório</a>
-        </div>
-      </section>
+      <section className="px-5 pb-16 pt-8 md:px-8 md:pb-24 md:pt-12 lg:px-10">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          <div>
+            <SectionTag>Diagnóstico executivo em até 48h</SectionTag>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-[#101828] md:text-6xl lg:text-7xl">
+              Descubra onde sua empresa está perdendo dinheiro — antes que apareça no caixa
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#475467] md:text-xl">
+              A IronCore entrega um diagnóstico executivo com riscos, impacto financeiro e plano de ação em até 48h.
+            </p>
 
-      <div className="mx-auto h-px max-w-5xl bg-white/8" />
-
-      <section className="mx-auto max-w-5xl px-5 py-20 md:px-10" id="problema">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6B6B6B]">O problema</p>
-        <h2 className="font-['Syne',var(--font-geist-sans)] text-3xl font-bold leading-tight tracking-[-0.025em] md:text-5xl">O histórico financeiro da sua empresa existe. Só que ninguém leu direito.</h2>
-        <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-white/8 bg-white/8 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ['📂','Planilhas sem conclusão','Dados existem, mas ninguém transformou em diagnóstico. O gestor opera no escuro.'],
-            ['⏳','Contador leva semanas','Consultoria tradicional custa caro e demora. Quando chega, o momento de decidir já passou.'],
-            ['🗣️','Reunião sem embasamento','Sócio pede análise. Banco pede histórico. Você precisa de algo concreto — não de suposições.'],
-            ['🔁','Padrão que se repete','Todo ano o mesmo problema. Caixa aperta, mas ninguém sabe exatamente onde o sangramento começou.'],
-          ].map(([icon,title,desc]) => <div key={title} className="bg-[#141414] p-7"><div className="mb-3 text-xl">{icon}</div><div className="font-['Syne',var(--font-geist-sans)] text-base font-semibold text-[#FAFAF7]">{title}</div><div className="mt-2 text-sm leading-7 text-[#6B6B6B]">{desc}</div></div>)}
-        </div>
-      </section>
-
-      <div className="mx-auto h-px max-w-5xl bg-white/8" />
-
-      <section className="mx-auto max-w-5xl px-5 py-20 md:px-10" id="como-funciona">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6B6B6B]">Como funciona</p>
-        <h2 className="font-['Syne',var(--font-geist-sans)] text-3xl font-bold leading-tight tracking-[-0.025em] md:text-5xl">Do upload ao diagnóstico. Sem complicação.</h2>
-        <div className="mt-12 space-y-0">
-          {[
-            ['01','Você envia a base histórica','Upload do histórico financeiro da empresa — extratos, DRE, fluxo de caixa. Formato padrão, sem adaptação necessária.'],
-            ['02','A IA consolida e analisa','O IRONCORE DIAG processa os dados, identifica padrões, anomalias e tendências.'],
-            ['03','Geração do diagnóstico','O sistema gera um diagnóstico executivo completo — com métricas, interpretações e alertas — pronto para leitura humana.'],
-            ['04','Validação e entrega','Um executivo revisa o diagnóstico antes da entrega final. Você recebe um documento confiável, não uma saída bruta de IA.'],
-          ].map(([n,t,d]) => <div key={n} className="grid gap-4 border-b border-white/8 py-8 md:grid-cols-[64px_1fr]"><div className="pt-1 font-['Syne',var(--font-geist-sans)] text-xs font-bold tracking-[0.08em] text-[#C8FF00]">{n}</div><div><div className="font-['Syne',var(--font-geist-sans)] text-xl font-bold tracking-[-0.02em] text-[#FAFAF7]">{t}</div><div className="mt-2 text-sm leading-7 text-[rgba(250,250,247,0.55)]">{d}</div></div></div>)}
-        </div>
-      </section>
-
-      <section className="border-y border-white/8 bg-[#141414] px-5 py-20 md:px-10" id="output">
-        <div className="mx-auto max-w-5xl">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6B6B6B]">Exemplo de output</p>
-          <h2 className="font-['Syne',var(--font-geist-sans)] text-3xl font-bold leading-tight tracking-[-0.025em] md:text-5xl">O que você recebe</h2>
-          <div className="mt-10 overflow-hidden rounded-xl border border-white/8 bg-[#1E1E1E]">
-            <div className="flex items-center gap-3 border-b border-[rgba(200,255,0,0.12)] bg-[rgba(200,255,0,0.05)] px-6 py-4"><div className="h-2 w-2 rounded-full bg-[#C8FF00]" /><div className="text-xs font-medium uppercase tracking-[0.06em] text-[#C8FF00]">Diagnóstico histórico — Empresa XYZ · Jan–Dez 2024</div></div>
-            <div className="grid gap-6 p-6 md:grid-cols-2 xl:grid-cols-4">
-              {[
-                { label: 'Receita consolidada', value: 'R$ 4,2M', sub: 'Crescimento de 18% vs. 2023', bad: false },
-                { label: 'Margem operacional', value: '-4,7%', sub: 'Deterioração no 3º trimestre', bad: true },
-                { label: 'Caixa disponível', value: 'R$ 87K', sub: 'Cobertura de 12 dias', bad: false },
-                { label: 'Ciclo financeiro', value: '+41 dias', sub: 'Versus benchmark do setor: 28d', bad: true },
-              ].map((item) => <div key={item.label} className="border-l-2 border-[rgba(200,255,0,0.3)] pl-4"><div className="text-[11px] uppercase tracking-[0.08em] text-[#6B6B6B]">{item.label}</div><div className={`mt-2 font-['Syne',var(--font-geist-sans)] text-3xl font-bold tracking-[-0.02em] ${item.bad ? 'text-[#FF3B30]' : 'text-[#FAFAF7]'}`}>{item.value}</div><div className="mt-1 text-xs text-[#6B6B6B]">{item.sub}</div></div>)}
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href={appPath("/login/")}
+                className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-7 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#111827]"
+              >
+                Solicitar diagnóstico
+              </Link>
+              <a
+                href="#entrega"
+                className="inline-flex items-center justify-center rounded-xl border border-black/10 bg-white px-7 py-4 text-sm font-semibold text-[#344054] transition hover:border-black/15 hover:text-[#111827]"
+              >
+                Ver o que você recebe
+              </a>
             </div>
-            <div className="border-t border-white/8 bg-black/20 p-6"><div className="mb-3 text-[11px] uppercase tracking-[0.08em] text-[#C8FF00]/70">Insight da IA</div><div className="text-sm italic leading-7 text-[rgba(250,250,247,0.7)]">&quot;A empresa apresenta crescimento de receita consistente, porém com compressão de margem iniciada em agosto — correlacionada ao aumento do custo de fornecedores e alongamento do prazo médio de recebimento.&quot;</div></div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {[
+                ["48h", "Prazo de entrega"],
+                ["3 riscos", "Priorizados no diagnóstico express"],
+                ["5W2H", "Plano de ação estruturado"],
+              ].map(([value, label]) => (
+                <div key={label} className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+                  <div className="text-2xl font-semibold tracking-[-0.03em] text-[#101828]">{value}</div>
+                  <div className="mt-1 text-sm leading-6 text-[#667085]">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] md:p-8">
+            <div className="flex items-center justify-between border-b border-black/5 pb-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#98A2B3]">Prévia executiva</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#101828]">Diagnóstico IronCore</h2>
+              </div>
+              <div className="rounded-full bg-[#ECFDF3] px-3 py-1 text-xs font-semibold text-[#027A48]">Leitura consolidada</div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              {[
+                ["Risco prioritário", "Pressão de caixa projetada nos próximos 60 dias"],
+                ["Impacto estimado", "Redução potencial de liquidez operacional"],
+                ["Causa provável", "Alongamento de recebíveis e margem comprimida"],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-[#F8FAFC] p-4">
+                  <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#98A2B3]">{label}</div>
+                  <div className="mt-2 text-sm font-medium leading-6 text-[#101828]">{value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-[#D0D5DD] bg-[#FCFCFD] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#667085]">Plano de ação</div>
+              <ul className="mt-3 space-y-3 text-sm leading-6 text-[#344054]">
+                <li>• Revisar política comercial e prazo médio de recebimento</li>
+                <li>• Recalibrar mix com foco em margem real</li>
+                <li>• Priorizar medidas de caixa no horizonte imediato</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-20 md:px-10" id="precos">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6B6B6B]">Preços</p>
-        <h2 className="font-['Syne',var(--font-geist-sans)] text-3xl font-bold leading-tight tracking-[-0.025em] md:text-5xl">Simples. Sem surpresa.</h2>
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-xl border border-white/8 bg-[#141414] p-8"><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6B6B6B]">Avulso</div><div className="mt-4 font-['Syne',var(--font-geist-sans)] text-5xl font-extrabold tracking-[-0.03em] text-[#FAFAF7]"><span className="text-base align-top">R$</span>497</div><div className="mt-2 text-sm text-[#6B6B6B]">por diagnóstico</div></div>
-          <div className="relative rounded-xl border border-[#C8FF00] bg-[rgba(200,255,0,0.04)] p-8"><div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C8FF00] px-4 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#0A0A0A]">Mais escolhido</div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6B6B6B]">Mensal</div><div className="mt-4 font-['Syne',var(--font-geist-sans)] text-5xl font-extrabold tracking-[-0.03em] text-[#FAFAF7]"><span className="text-base align-top">R$</span>297</div><div className="mt-2 text-sm text-[#6B6B6B]">por mês · mínimo 3 meses</div></div>
-          <div className="rounded-xl border border-white/8 bg-[#141414] p-8"><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6B6B6B]">Empresa</div><div className="mt-4 font-['Syne',var(--font-geist-sans)] text-3xl font-extrabold tracking-[-0.03em] text-[#FAFAF7]">Sob consulta</div><div className="mt-2 text-sm text-[#6B6B6B]">para múltiplas empresas</div></div>
+      <section className="border-y border-black/5 bg-white px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>Dor</SectionTag>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <div>
+              <h2 className="max-w-xl text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+                Empresas não quebram por falta de dados. Quebram por falta de leitura.
+              </h2>
+              <p className="mt-6 max-w-lg text-lg leading-8 text-[#475467]">
+                O problema não está na informação. Está na interpretação.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {painPoints.map((item) => (
+                <div key={item} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-6">
+                  <div className="h-10 w-10 rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.06)]" />
+                  <p className="mt-5 text-base font-medium leading-7 text-[#101828]">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="border-t border-white/8 px-5 py-24 text-center md:px-10">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="font-['Syne',var(--font-geist-sans)] text-3xl font-bold leading-tight tracking-[-0.025em] md:text-5xl">Seu histórico financeiro tem resposta. A IA vai buscar.</h2>
-          <p className="mt-4 text-base font-light text-[rgba(250,250,247,0.5)]">Envie a base, receba o diagnóstico. Sem proposta longa, sem espera de semanas.</p>
-          <div className="mt-10"><Link href={appPath('/login/')} className="rounded-lg bg-[#C8FF00] px-10 py-4 text-base font-medium text-[#0A0A0A] shadow-[0_8px_24px_rgba(200,255,0,0.25)] hover:-translate-y-0.5 hover:bg-[#d6ff4d]">Solicitar diagnóstico agora</Link></div>
+      <section id="entrega" className="px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>O que a IronCore entrega</SectionTag>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
+            <div>
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+                Diagnóstico Executivo Estruturado
+              </h2>
+              <p className="mt-6 max-w-xl text-lg leading-8 text-[#475467]">
+                Sem dashboards. Sem ruído. Apenas decisão.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {deliveries.map((item) => (
+                <div key={item} className="rounded-2xl border border-black/5 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+                  <div className="text-sm font-semibold uppercase tracking-[0.14em] text-[#98A2B3]">Entrega</div>
+                  <p className="mt-4 text-base font-medium leading-7 text-[#101828]">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="como-funciona" className="border-y border-black/5 bg-[#FCFCFD] px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>Como funciona</SectionTag>
+          <h2 className="mt-6 max-w-3xl text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+            Um processo enxuto para chegar rápido à leitura certa.
+          </h2>
+
+          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+            {workflow.map((item) => (
+              <div key={item.step} className="rounded-[24px] border border-black/5 bg-white p-7 shadow-[0_18px_50px_rgba(15,23,42,0.04)]">
+                <div className="text-sm font-semibold tracking-[0.18em] text-[#98A2B3]">{item.step}</div>
+                <h3 className="mt-6 text-2xl font-semibold tracking-[-0.03em] text-[#101828]">{item.title}</h3>
+                <p className="mt-4 text-base leading-7 text-[#475467]">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="para-quem" className="px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>Para quem é</SectionTag>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+                Clareza financeira para decisões que não podem esperar.
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {audiences.map((item) => (
+                <div key={item} className="rounded-2xl border border-black/5 bg-white p-6">
+                  <p className="text-base font-medium leading-7 text-[#101828]">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-black/5 bg-white px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>Diferencial</SectionTag>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
+            <div>
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+                A IronCore não entrega dados. Entrega interpretação.
+              </h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {differentiators.map((item) => (
+                <div key={item} className="rounded-2xl bg-[#F8FAFC] p-6">
+                  <p className="text-base font-medium leading-7 text-[#101828]">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl rounded-[32px] border border-black/5 bg-[#0F172A] px-6 py-8 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] md:px-10 md:py-12">
+          <SectionTag>Prova</SectionTag>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+                Em testes recentes, a IronCore identificou:
+              </h2>
+            </div>
+            <div className="grid gap-4">
+              {proofs.map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                  <p className="text-base font-medium leading-7 text-white">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="oferta" className="border-y border-black/5 bg-[#FCFCFD] px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <SectionTag>Oferta</SectionTag>
+          <div className="mt-6 grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch">
+            <div>
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+                Diagnóstico Express
+              </h2>
+              <p className="mt-6 max-w-lg text-lg leading-8 text-[#475467]">
+                Uma entrega objetiva para identificar rapidamente os riscos mais críticos da operação e orientar a próxima decisão.
+              </p>
+            </div>
+
+            <div className="rounded-[28px] border border-black/5 bg-white p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {offerItems.map((item) => (
+                  <div key={item} className="rounded-2xl bg-[#F8FAFC] p-5 text-sm font-medium leading-6 text-[#101828]">
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 border-t border-black/5 pt-8">
+                <div className="text-sm uppercase tracking-[0.14em] text-[#98A2B3]">Investimento</div>
+                <div className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-[#101828] md:text-5xl">
+                  A partir de R$2.000
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-16 md:px-8 md:py-24 lg:px-10">
+        <div className="mx-auto max-w-5xl rounded-[32px] border border-black/5 bg-white px-6 py-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.08)] md:px-10 md:py-14">
+          <SectionTag>CTA final</SectionTag>
+          <h2 className="mx-auto mt-6 max-w-3xl text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
+            Se sua operação precisa de clareza, não de mais dados:
+          </h2>
+          <div className="mt-10">
+            <Link
+              href={appPath("/login/")}
+              className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-8 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#111827]"
+            >
+              Solicitar diagnóstico IronCore
+            </Link>
+          </div>
         </div>
       </section>
     </main>
