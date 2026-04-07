@@ -12,6 +12,7 @@ type Report = {
   strategicDirection?: string[];
   conclusion?: string;
   projectedCashflowStatement?: { periods: string[]; rows: StatementRow[] };
+  kpis?: { label: string; value: string; tone: string }[];
 };
 
 type Action5w2h = { what?: string; why?: string; who?: string; when?: string; where?: string; how?: string; howMuch?: string };
@@ -20,54 +21,98 @@ function money(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
+function sectionTitle(text: string) {
+  return new Paragraph({
+    heading: HeadingLevel.HEADING_1,
+    spacing: { before: 260, after: 120 },
+    children: [new TextRun({ text, bold: true, color: "0F172A", size: 28 })],
+  });
+}
+
+function body(text: string) {
+  return new Paragraph({
+    spacing: { after: 120 },
+    children: [new TextRun({ text, color: "334155", size: 22 })],
+  });
+}
+
+function bullet(text: string) {
+  return new Paragraph({
+    bullet: { level: 0 },
+    spacing: { after: 80 },
+    children: [new TextRun({ text, color: "334155", size: 22 })],
+  });
+}
+
 function tableFromDebt(rows: DebtTableRow[]) {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
-      new TableRow({ children: ["Tipo", "Projeto", "Modalidade", "Vencido", "A Vencer", "Total"].map((h) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })] })) }),
-      ...rows.map((row) => new TableRow({ children: [row.type, row.group, row.modality, money(row.overdue), money(row.upcoming), money(row.total)].map((v) => new TableCell({ children: [new Paragraph(String(v))] })) })),
+      new TableRow({ children: ["Tipo", "Projeto", "Modalidade", "Vencido", "A Vencer", "Total"].map((h) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, color: "0F172A" })] })] })) }),
+      ...rows.map((row) => new TableRow({ children: [row.type.toUpperCase(), row.group, row.modality, money(row.overdue), money(row.upcoming), money(row.total)].map((v) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(v), color: "334155" })] })] })) })),
     ],
   });
 }
 
 export async function buildExecutiveDocx(input: { projectName: string; client?: string; score?: number; report?: Report; actions5w2h?: Action5w2h[] }) {
   const report = input.report || {};
+  const kpis = report.kpis || [];
+
   const doc = new Document({
     sections: [{
       properties: {},
       children: [
+        new Paragraph({ children: [new TextRun({ text: "IRONCORE DIAG", bold: true, color: "667085", size: 20 })], spacing: { after: 120 } }),
         new Paragraph({ text: "Diagnóstico Executivo Final", heading: HeadingLevel.TITLE }),
-        new Paragraph({ children: [new TextRun({ text: `Cliente: ${input.client || input.projectName}`, bold: true })] }),
-        new Paragraph({ children: [new TextRun({ text: `Projeto: ${input.projectName}`, bold: true })] }),
-        new Paragraph({ text: `Score: ${input.score || "-"}` }),
-        new Paragraph({ text: "" }),
-        new Paragraph({ text: "Resumo Executivo", heading: HeadingLevel.HEADING_1 }),
-        new Paragraph(String(report.executiveSummary || "-")),
-        new Paragraph({ text: "Leitura do Cenário", heading: HeadingLevel.HEADING_1 }),
-        new Paragraph(String(report.scenarioReading || "-")),
-        new Paragraph({ text: "Causas Raiz", heading: HeadingLevel.HEADING_1 }),
-        ...(report.rootCauses || []).map((item) => new Paragraph({ text: item, bullet: { level: 0 } })),
-        new Paragraph({ text: "Endividamento Analítico", heading: HeadingLevel.HEADING_1 }),
+        body(`Cliente: ${input.client || input.projectName}`),
+        body(`Projeto: ${input.projectName}`),
+        body(`Score geral: ${input.score || "-"}`),
+
+        sectionTitle("Resumo executivo"),
+        body(String(report.executiveSummary || "-")),
+
+        sectionTitle("Leitura do cenário"),
+        body(String(report.scenarioReading || "-")),
+
+        ...(kpis.length ? [sectionTitle("KPIs executivos"), ...kpis.flatMap((item) => [
+          new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: item.label, bold: true, color: "0F172A", size: 22 })] }),
+          body(String(item.value || "-")),
+        ])] : []),
+
+        sectionTitle("Causas raiz"),
+        ...((report.rootCauses || []).length ? (report.rootCauses || []).map(bullet) : [body("Não consolidado.")]),
+
+        sectionTitle("Riscos prioritários"),
+        ...((report.priorityRisks || []).length ? (report.priorityRisks || []).map(bullet) : [body("Não consolidado.")]),
+
+        sectionTitle("Endividamento analítico"),
         tableFromDebt(report.debtTable || []),
-        new Paragraph({ text: "Impacto em Caixa", heading: HeadingLevel.HEADING_1 }),
-        new Paragraph(String(report.cashImpact || "-")),
-        new Paragraph({ text: "Riscos Prioritários", heading: HeadingLevel.HEADING_1 }),
-        ...(report.priorityRisks || []).map((item) => new Paragraph({ text: item, bullet: { level: 0 } })),
-        new Paragraph({ text: "Direcionamento Estratégico", heading: HeadingLevel.HEADING_1 }),
-        ...(report.strategicDirection || []).map((item) => new Paragraph({ text: item, bullet: { level: 0 } })),
-        new Paragraph({ text: "Fluxo de Caixa Projetado", heading: HeadingLevel.HEADING_1 }),
-        ...((report.projectedCashflowStatement?.rows || []).map((row) => new Paragraph(`${row.label}: ${row.values.map(money).join(" | ")}`))),
-        new Paragraph({ text: "Plano 5W2H", heading: HeadingLevel.HEADING_1 }),
-        ...((input.actions5w2h || []).flatMap((a) => [
-          new Paragraph({ text: String(a.what || "-"), heading: HeadingLevel.HEADING_2 }),
-          new Paragraph(`Why: ${a.why || "-"}`),
-          new Paragraph(`Who: ${a.who || "-"} | When: ${a.when || "-"}`),
-          new Paragraph(`Where: ${a.where || "-"}`),
-          new Paragraph(`How: ${a.how || "-"}`),
-          new Paragraph(`How much: ${a.howMuch || "-"}`),
-        ])),
-        new Paragraph({ text: "Conclusão", heading: HeadingLevel.HEADING_1 }),
-        new Paragraph(String(report.conclusion || "-")),
+
+        sectionTitle("Impacto em caixa"),
+        body(String(report.cashImpact || "-")),
+
+        sectionTitle("Direcionamento estratégico"),
+        ...((report.strategicDirection || []).length ? (report.strategicDirection || []).map(bullet) : [body("Não consolidado.")]),
+
+        sectionTitle("Fluxo de caixa projetado"),
+        ...((report.projectedCashflowStatement?.rows || []).length
+          ? (report.projectedCashflowStatement?.rows || []).map((row) => body(`${row.label}: ${row.values.map(money).join(" | ")}`))
+          : [body("Fluxo projetado não consolidado.")]),
+
+        sectionTitle("Plano de ação 5W2H"),
+        ...((input.actions5w2h || []).length
+          ? (input.actions5w2h || []).flatMap((a) => [
+              new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: String(a.what || "-"), bold: true, color: "0F172A", size: 24 })], spacing: { before: 180, after: 80 } }),
+              body(`Why: ${a.why || "-"}`),
+              body(`Who: ${a.who || "-"} | When: ${a.when || "-"}`),
+              body(`Where: ${a.where || "-"}`),
+              body(`How: ${a.how || "-"}`),
+              body(`How much: ${a.howMuch || "-"}`),
+            ])
+          : [body("Nenhuma ação estruturada ainda.")]),
+
+        sectionTitle("Conclusão"),
+        body(String(report.conclusion || "-")),
       ],
     }],
   });

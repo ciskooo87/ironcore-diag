@@ -63,7 +63,7 @@ export function diagnosisHtml(input: {
   body{font-family:Inter,Arial,sans-serif;padding:28px;color:#0f172a;background:#f8fafc}
   h1,h2,h3{margin:0 0 12px}
   p,li,td,th{line-height:1.55;font-size:13px}
-  .cover{padding:28px;border-radius:24px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;margin-bottom:22px}
+  .cover{padding:32px;border-radius:28px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;margin-bottom:22px}
   .muted{color:#cbd5e1;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
   .score{display:inline-block;margin-top:8px;padding:8px 12px;border-radius:999px;background:#0ea5e9;color:#fff;font-weight:700}
   .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
@@ -81,7 +81,7 @@ export function diagnosisHtml(input: {
   @media print{body{background:#fff;padding:0}.card,.kpi{box-shadow:none}}
   </style></head><body>
   <div class="cover"><div class="muted">IRONCORE DIAG · Entrega Final</div><h1>${input.title}</h1><p><strong>Cliente:</strong> ${input.client || input.projectName}</p><p><strong>Projeto:</strong> ${input.projectName}</p>${typeof input.score === "number" ? `<div class="score">Score Geral: ${input.score}</div>` : ""}<div class="grid">${kpis}</div></div>
-  <section class="card section"><h2>Resumo executivo</h2><p>${input.summary}</p></section>
+  <section class="split section"><div class="card"><h2>Resumo executivo</h2><p>${input.summary}</p></div><div class="card"><h2>Conclusão executiva</h2><p>${input.report?.conclusion || input.narrative}</p></div></section>
   <section class="split section"><div class="card"><h2>Leitura do cenário</h2><p>${input.report?.scenarioReading || input.narrative}</p></div><div class="card"><h2>Impacto em caixa</h2><p>${input.report?.cashImpact || '-'}</p></div></section>
   <section class="split section"><div class="card"><h2>Causas raiz</h2><ul>${causes || '<li>Não consolidado.</li>'}</ul></div><div class="card"><h2>Riscos prioritários</h2><ul>${items}</ul></div></section>
   <section class="card section"><h2>Endividamento analítico</h2><table><thead><tr><th>Tipo</th><th>Projeto</th><th>Modalidade</th><th>Vencido</th><th>A vencer</th><th>Total</th></tr></thead><tbody>${debtRows || '<tr><td colspan="6">Não consolidado.</td></tr>'}</tbody></table></section>
@@ -91,7 +91,6 @@ export function diagnosisHtml(input: {
   ${statementTable('DFC Histórico', input.report?.dfcHistoricalStatement)}
   ${statementTable('DFC Projetado', input.report?.dfcProjectedStatement)}
   ${statementTable('Fluxo de Caixa Projetado', input.report?.projectedCashflowStatement)}
-  <section class="card section"><h2>Conclusão</h2><p>${input.report?.conclusion || input.narrative}</p></section>
   <section class="section"><h2>Plano de ação 5W2H</h2>${actions || '<div class="card">Nenhuma ação estruturada ainda.</div>'}</section>
   </body></html>`;
 }
