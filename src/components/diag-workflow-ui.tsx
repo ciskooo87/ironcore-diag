@@ -22,7 +22,7 @@ export function WorkflowChecklist({ items, compact = false }: { items: WorkflowI
 
 export function StepGuidance({ title, description, nextHref, nextLabel }: { title: string; description: string; nextHref?: string; nextLabel?: string; }) {
   return (
-    <section className="rounded-3xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
+    <section className="rounded-[28px] border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
       <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Próximo passo</div>
       <h2 className="mt-2 text-lg font-semibold text-[#101828]">{title}</h2>
       <p className="mt-3 text-sm leading-7 text-[#475467]">{description}</p>

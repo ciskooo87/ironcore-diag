@@ -11,7 +11,7 @@ export function DeleteProjectButton({ action, label }: { action: string; label: 
         if (!ok) event.preventDefault();
       }}
     >
-      <button type="submit" className="w-full rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-center text-sm text-[#B42318] hover:bg-rose-400/15">
+      <button type="submit" className="w-full rounded-2xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-center text-sm text-[#B42318] transition hover:bg-[#FEE4E2]">
         Arquivar projeto
       </button>
     </form>
