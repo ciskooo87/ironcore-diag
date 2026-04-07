@@ -61,7 +61,7 @@ function toneClass(tone: "cyan" | "emerald" | "amber" | "rose") {
 function MiniBarChart({ title, series, positive = true }: { title: string; series: ReportRow[]; positive?: boolean }) {
   const max = Math.max(...series.map((item) => Math.abs(Number(item.value) || 0)), 1);
   return (
-    <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+    <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
       <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">{title}</div>
       <div className="mt-4 space-y-3">
         {series.map((item) => {
@@ -131,7 +131,7 @@ function buildFallbackStatement(series: ReportRow[] | undefined, kind: "dre" | "
 function StatementTable({ title, statement, fallbackSeries, kind }: { title: string; statement?: { periods: string[]; rows: StatementRow[] }; fallbackSeries?: ReportRow[]; kind: "dre" | "dfc" }) {
   const resolved = statement || buildFallbackStatement(fallbackSeries, kind);
   return (
-    <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 overflow-x-auto">
+    <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6 overflow-x-auto">
       <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">{title}</div>
       {!resolved ? <div className="mt-4 text-sm text-[#98A2B3]">Demonstrativo ainda não consolidado para esta entrega.</div> : (
         <table className="mt-4 min-w-[780px] w-full text-sm">
@@ -160,9 +160,9 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 surface-elevated text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Documento Final" active="document"><div className="rounded-[28px] border border-black/5 bg-white p-5 surface-elevated text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
 
   const validations = await listHistoricalDiagnosisValidations(project.id, 20);
   const finalDiagnosis = (project.final_diagnosis || {}) as { executiveReport?: FinalReport };
@@ -181,9 +181,9 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
           {query.saved ? <StatusCallout tone="success">Operação concluída com sucesso.</StatusCallout> : null}
           {query.error ? <StatusCallout tone="error">Erro na entrega final: {query.error}</StatusCallout> : null}
 
-          <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Produto final</div>
-            <h2 className="mt-2 text-xl font-semibold text-[#101828]">Diagnóstico executivo final</h2>
+          <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Produto final</div>
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#101828]">Diagnóstico executivo final</h2>
 
             <div className="mt-6 space-y-6 text-sm text-[#475467]">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -196,11 +196,11 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
               </div>
 
               <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-                <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Resumo executivo</div><p className="mt-3 leading-7">{report.executiveSummary || presentation.executiveSummary}</p></div>
-                <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Leitura do cenário</div><p className="mt-3 leading-7">{report.scenarioReading || presentation.narrative}</p></div>
+                <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Resumo executivo</div><p className="mt-3 leading-7">{report.executiveSummary || presentation.executiveSummary}</p></div>
+                <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Leitura do cenário</div><p className="mt-3 leading-7">{report.scenarioReading || presentation.narrative}</p></div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Causas raiz e riscos prioritários</div>
                 <div className="mt-4 grid gap-4 xl:grid-cols-2">
                   <div><div className="text-sm font-medium text-[#101828]">Causas raiz</div><ul className="mt-3 space-y-2">{(report.rootCauses || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
@@ -208,7 +208,7 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Direcionamento estratégico e conclusão</div>
                 <div className="mt-4 grid gap-4 xl:grid-cols-2">
                   <div><div className="text-sm font-medium text-[#101828]">Direcionamento estratégico</div><ul className="mt-3 space-y-2">{(report.strategicDirection || []).map((item) => <li key={item}>• {item}</li>)}</ul></div>
@@ -216,13 +216,13 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Destaques financeiros</div>
                 <div className="mt-4 grid gap-4 xl:grid-cols-2">
                   <MiniBarChart title="Receita histórica" series={report.dreHistorical || []} positive />
                   <MiniBarChart title="Caixa histórico" series={report.dfcHistorical || []} positive={false} />
                 </div>
-                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 overflow-x-auto">
+                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6 overflow-x-auto">
                   <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Endividamento analítico</div>
                   {(["fidc", "bancario"] as const).map((bucket) => {
                     const rows = (report.debtTable || []).filter((item) => item.type === bucket);
@@ -243,10 +243,10 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                     );
                   })}
                 </div>
-                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
+                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Impacto em caixa</div><p className="mt-3 leading-7">{report.cashImpact || "-"}</p></div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Demonstrativos e memória financeira</div>
                 <div className="mt-4 grid gap-4 xl:grid-cols-2">
                   <StatementTable title="DRE histórico completo" statement={report.dreHistoricalStatement} fallbackSeries={report.dreHistorical} kind="dre" />
@@ -257,18 +257,18 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
                 <div className="mt-4"><StatementTable title="Fluxo de caixa projetado" statement={report.projectedCashflowStatement} fallbackSeries={report.dfcProjected} kind="dfc" /></div>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5">
+              <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-5 md:p-6">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Plano de ação 5W2H</div>
                 <div className="mt-3 space-y-3">
-                  {attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="font-medium leading-6 text-[#101828]">{item.title}</div><div className="mt-3 grid gap-3 text-xs leading-6 text-[#475467] md:grid-cols-2 xl:grid-cols-3"><div><span className="text-[#98A2B3]">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-[#98A2B3]">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-[#98A2B3]">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-[#98A2B3]">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-[#98A2B3]">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-[#98A2B3]">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-[#98A2B3]">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}
+                  {attentionItems.map((item) => <div key={item.title} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5"><div className="font-medium leading-6 text-[#101828]">{item.title}</div><div className="mt-3 grid gap-3 text-xs leading-6 text-[#475467] md:grid-cols-2 xl:grid-cols-3"><div><span className="text-[#98A2B3]">What:</span> {item.action5w2h?.what || "-"}</div><div><span className="text-[#98A2B3]">Why:</span> {item.action5w2h?.why || "-"}</div><div><span className="text-[#98A2B3]">Who:</span> {item.action5w2h?.who || "-"}</div><div><span className="text-[#98A2B3]">When:</span> {item.action5w2h?.when || "-"}</div><div><span className="text-[#98A2B3]">Where:</span> {item.action5w2h?.where || "-"}</div><div><span className="text-[#98A2B3]">How:</span> {item.action5w2h?.how || "-"}</div><div className="md:col-span-2 xl:col-span-3"><span className="text-[#98A2B3]">How much:</span> {item.action5w2h?.howMuch || "-"}</div></div></div>)}
                   {attentionItems.length === 0 ? <div className="text-[#98A2B3]">Nenhuma ação 5W2H consolidada ainda.</div> : null}
                 </div>
               </div>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-black/10">Consolidar entrega final</button></form>
-              <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-black/10">Abrir histórico</Link>
+              <form action={appPath(`/api/projects/${id}/finalize/`)} method="post"><button type="submit" className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm transition hover:border-black/10 hover:bg-white text-[#344054] hover:border-black/10">Consolidar entrega final</button></form>
+              <Link href={`/projetos/${id}/historico/`} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm transition hover:border-black/10 hover:bg-white text-[#344054] hover:border-black/10">Abrir histórico</Link>
             </div>
 
             <DeliverablePreviewPanel projectId={id} />
@@ -276,12 +276,12 @@ export default async function EntregaFinalPage({ params, searchParams }: { param
         </div>
 
         <RightRail title="Validação auditável">
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Checklist final</div><div className="mt-3"><WorkflowChecklist items={workflow.checklist} compact /></div></div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Checklist final</div><div className="mt-3"><WorkflowChecklist items={workflow.checklist} compact /></div></div>
           <StepGuidance title="Critério de fechamento" description="Esta etapa só fecha de verdade quando a leitura executiva estiver consolidada, houver validação humana registrada e o documento final puder ser exportado sem depender de interpretação adicional." />
           <ValidationMatrix hasInference={Boolean(latestDiagnosis)} validations={validations} />
           {latestDiagnosis ? <form action={appPath(`/api/projects/${id}/historical-diagnosis/validate/`)} method="post" className="grid gap-2"><input type="hidden" name="csrf_token" value={csrf} /><input type="hidden" name="inference_run_id" value={String(latestDiagnosis.id)} /><select name="decision" className="bg-white border border-black/10 rounded-lg px-3 py-2"><option value="aprovado">Aprovar</option><option value="ajustar">Editar</option><option value="bloquear">Rejeitar</option></select><textarea name="note" placeholder="Comentários do responsável" className="bg-white border border-black/10 rounded-lg px-3 py-2 min-h-28" /><button type="submit" className="rounded-2xl border bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827]">Validar decisão</button></form> : null}
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">{v.decision}</div><div className="text-xs text-[#98A2B3]">{v.validated_at}</div><div className="mt-2 text-[#475467]">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-[#667085]">Nenhuma validação ainda.</div>}</div></div>
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Versões da entrega</div><div className="mt-3 space-y-2 text-sm">{versions.length ? versions.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">Versão {v.version_no}</div><div className="text-xs text-[#98A2B3]">{v.generated_at}</div></div>) : <div className="text-[#667085]">Nenhuma versão consolidada ainda.</div>}</div></div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Trilha de decisão</div><div className="mt-3 space-y-2 text-sm">{validations.length ? validations.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">{v.decision}</div><div className="text-xs text-[#98A2B3]">{v.validated_at}</div><div className="mt-2 text-[#475467]">{v.summary_text || v.note || "-"}</div></div>) : <div className="text-[#667085]">Nenhuma validação ainda.</div>}</div></div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5"><div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Versões da entrega</div><div className="mt-3 space-y-2 text-sm">{versions.length ? versions.map((v) => <div key={v.id} className="rounded-xl border border-black/5 px-3 py-3"><div className="font-medium text-[#101828]">Versão {v.version_no}</div><div className="text-xs text-[#98A2B3]">{v.generated_at}</div></div>) : <div className="text-[#667085]">Nenhuma versão consolidada ainda.</div>}</div></div>
           <DeliveryVersionDiff versions={versions as any} />
         </RightRail>
       </div>

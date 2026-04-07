@@ -28,14 +28,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       active="overview"
       score={projects.length}
       status={projects.length ? `${projects.length} projeto${projects.length > 1 ? "s" : ""} ${includeArchived ? "arquivado" : "ativo"}${projects.length > 1 ? "s" : ""}` : includeArchived ? "Sem projetos arquivados" : "Sem projetos ativos"}
-      cta={<div className="flex flex-wrap gap-2"><Link href="/projetos/novo/" className="rounded-2xl bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827]">Novo projeto</Link>{isAdmin ? <Link href={includeArchived ? "/projetos" : "/projetos?view=archived"} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#475467] hover:border-black/10 hover:text-[#101828]">{includeArchived ? "Ver ativos" : "Ver arquivados"}</Link> : null}</div>}
+      cta={<div className="flex flex-wrap gap-2"><Link href="/projetos/novo/" className="rounded-2xl bg-[#0F172A] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] hover:-translate-y-0.5 hover:bg-[#111827]">Novo projeto</Link>{isAdmin ? <Link href={includeArchived ? "/projetos" : "/projetos?view=archived"} className="rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm transition hover:border-black/10 hover:bg-white text-[#475467] hover:border-black/10 hover:text-[#101828]">{includeArchived ? "Ver ativos" : "Ver arquivados"}</Link> : null}</div>}
     >
       {query.deleted ? <section className="mb-4 rounded-2xl border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]">Projeto movido para a lixeira lógica com sucesso.</section> : null}
       {query.restored ? <section className="mb-4 rounded-2xl border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]">Projeto restaurado para a lista principal.</section> : null}
       {query.purged ? <section className="mb-4 rounded-2xl border border-[#FEDF89] bg-[#FFFAEB] px-4 py-3 text-sm text-[#B54708]">Projeto excluído definitivamente do banco.</section> : null}
 
       {!projects.length ? (
-        <section className="rounded-[28px] border border-black/5 bg-white p-8 text-sm text-[#475467] shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+        <section className="rounded-[28px] border border-black/5 bg-white p-8 text-sm text-[#475467] surface-elevated">
           {includeArchived ? "Nenhum projeto arquivado." : <>Nenhum projeto disponível para o seu usuário. <Link className="text-[#0F172A]" href="/projetos/novo/">Criar novo projeto</Link>.</>}
         </section>
       ) : (
@@ -44,10 +44,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             const continueHref = getProjectContinueHref(project);
             const stepLabel = getWorkflowStepLabel(project.workflow_state);
             return (
-              <section key={project.id} className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
+              <section key={project.id} className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Projeto</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Projeto</div>
                     <h2 className="mt-2 truncate text-xl font-semibold text-[#101828]">{project.name}</h2>
                     <p className="mt-1 truncate text-sm text-[#667085]">{project.legal_name}</p>
                   </div>
@@ -58,7 +58,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <span className="rounded-full border border-black/5 bg-[#F8FAFC] px-3 py-1">Segmento: {project.segment || "Não informado"}</span>
                   {project.archived_at ? <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[#B54708]">Arquivado</span> : null}
                 </div>
-                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
+                <div className="mt-4 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
                   <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Resumo</div>
                   <p className="mt-2 line-clamp-4 text-sm text-[#475467]">{project.project_summary?.trim() || "Projeto sem resumo preenchido ainda."}</p>
                 </div>

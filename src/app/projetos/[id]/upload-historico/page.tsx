@@ -31,9 +31,9 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-[28px] border border-black/5 bg-white p-5 surface-elevated text-sm text-[#B42318]">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Upload histórico" active="inputs"><div className="rounded-[28px] border border-black/5 bg-white p-5 surface-elevated text-sm text-[#B42318]">Sem permissão.</div></DiagShell>;
   const entries = await listDailyEntries(project.id, 100);
   const uploads = entries.filter((e) => String((e.payload || {}).notes || "").includes("upload_kind:historico_"));
   const presentation = await buildProjectPresentation(project);
@@ -55,10 +55,10 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
           {query.saved ? <div className="rounded-2xl border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]">Upload realizado.</div> : null}
           {query.error ? <StatusCallout tone="error">{query.error === 'upload_validation' ? 'A base enviada não atendeu às regras mínimas do tipo selecionado.' : `Erro no upload: ${query.error}`}</StatusCallout> : null}
 
-          <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Bases obrigatórias</div>
-            <h2 className="mt-2 text-xl font-semibold text-[#101828]">Upload histórico do projeto</h2>
-            <p className="mt-2 text-sm text-[#667085]">Suba as bases certas, já categorizadas. CAR = Contas a Receber. CAP = Contas a Pagar.</p>
+          <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Bases obrigatórias</div>
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#101828]">Upload histórico do projeto</h2>
+            <p className="mt-3 text-sm leading-7 text-[#667085]">Suba as bases certas, já categorizadas. CAR = Contas a Receber. CAP = Contas a Pagar.</p>
             <div className="mt-5 grid gap-3 2xl:grid-cols-2">
               {kinds.map(([kind, label]) => (
                 <UploadHistoryForm key={kind} action={appPath(`/api/projects/${id}/daily/upload/`)} kind={kind} label={label} defaultDate={todayInSaoPauloISO()} templateHref={`/api/projects/${id}/daily/upload/template/?kind=${kind}`} />
@@ -66,10 +66,10 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Cobertura</div>
-            <h2 className="mt-2 text-xl font-semibold text-[#101828]">Checklist das bases históricas</h2>
-            <p className="mt-2 text-sm text-[#667085]">Use esta etapa só para confirmar cobertura e qualidade de upload. O restante do fluxo continua no relato e na conferência.</p>
+          <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Cobertura</div>
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#101828]">Checklist das bases históricas</h2>
+            <p className="mt-3 text-sm leading-7 text-[#667085]">Use esta etapa só para confirmar cobertura e qualidade de upload. O restante do fluxo continua no relato e na conferência.</p>
             <div className="mt-4">
               <WorkflowChecklist items={workflow.checklist.slice(0, 3)} compact />
             </div>
@@ -87,14 +87,14 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] md:p-6">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-[#0F172A]">Últimos uploads</div>
-            <h2 className="mt-2 text-xl font-semibold text-[#101828]">Preview das bases recebidas</h2>
+          <section className="rounded-[28px] border border-black/5 bg-white p-6 surface-elevated md:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#98A2B3]">Últimos uploads</div>
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#101828]">Preview das bases recebidas</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm">
               {uploads.slice(0, 6).map((entry) => {
                 const payload = ((entry.payload || {}) as UploadPreviewPayload);
                 return (
-                  <div key={entry.id} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
+                  <div key={entry.id} className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
                     <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">{entry.business_date}</div>
                     <div className="mt-2 break-words font-medium leading-6 text-[#101828]">{String(payload.notes || "Upload histórico")}</div>
                     <div className="mt-2 text-[#667085]">Qualidade do parser: {String(payload.parser_meta?.quality || 'n/a')}</div>
@@ -102,18 +102,18 @@ export default async function UploadHistoricoPage({ params, searchParams }: { pa
                   </div>
                 );
               })}
-              {uploads.length === 0 ? <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 text-[#667085]">Nenhuma base enviada ainda.</div> : null}
+              {uploads.length === 0 ? <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5 text-[#667085]">Nenhuma base enviada ainda.</div> : null}
             </div>
           </section>
         </div>
 
         <RightRail title="Prontidão do fluxo">
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Score de cobertura</div>
             <div className="mt-2 text-3xl font-semibold text-[#101828]">{workflow.progressPercent}%</div>
-            <div className="mt-2 text-sm text-[#667085]">Mede o quanto o projeto já percorreu da jornada completa do diagnóstico.</div>
+            <div className="mt-3 text-sm leading-7 text-[#667085]">Mede o quanto o projeto já percorreu da jornada completa do diagnóstico.</div>
           </div>
-          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4 md:p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Faltas críticas</div>
             <div className="mt-3 space-y-2 text-sm text-[#475467]">
               {workflow.missingKinds.length ? workflow.missingKinds.map((kind) => <div key={kind} className="rounded-xl border border-black/5 bg-white px-3 py-2">{kind}</div>) : <div className="rounded-xl border border-[#ABEFC6] bg-[#ECFDF3] px-3 py-2 text-[#027A48]">Todas as bases obrigatórias foram recebidas.</div>}
