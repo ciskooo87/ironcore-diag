@@ -51,7 +51,7 @@ function NavPill({ href, label, active }: { href: string; label: string; active:
     <Link
       href={href}
       className={[
-        "rounded-2xl border px-3 py-2.5 text-sm transition",
+        "block w-full rounded-2xl border px-3 py-2.5 text-sm leading-6 transition",
         active
           ? "border-[#D0D5DD] bg-white text-[#101828] shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
           : "border-black/5 bg-[#F8FAFC] text-[#475467] hover:border-black/10 hover:bg-white hover:text-[#101828]",
@@ -119,7 +119,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
               Cadastro, bases, consolidação, análise e entrega final dentro da mesma linguagem visual e operacional.
             </p>
 
-            <nav className="space-y-2">
+            <nav className="grid grid-cols-1 gap-2">
               {NAV.map((item) => (
                 <NavPill key={item.key} href={navHref(item.href, project?.code)} label={item.label} active={active === item.key} />
               ))}
