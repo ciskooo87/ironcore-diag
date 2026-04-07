@@ -16,9 +16,9 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
   const { id } = await params;
   const query = await searchParams;
   const project = await getProjectByCode(id);
-  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
+  if (!project) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Projeto não encontrado.</div></DiagShell>;
   const allowed = await canAccessProject(user, project.id);
-  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-3xl border border-white/8 bg-[#141414] p-5 text-sm text-rose-200">Sem permissão.</div></DiagShell>;
+  if (!allowed) return <DiagShell user={user} title="Diagnóstico IA" active="ia"><div className="rounded-[28px] border border-black/5 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] text-sm text-rose-200">Sem permissão.</div></DiagShell>;
   const presentation = await buildProjectPresentation(project);
   const workflow = await buildWorkflowChecklist(project);
 
@@ -31,7 +31,7 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
       project={{ name: project.name, code: project.code, client: project.legal_name, workflowState: project.workflow_state }}
       score={presentation.overallScore}
       status={workflow.latestDiagnosis ? "Análise IA gerada" : workflow.readyForAi ? "Pronto para rodar IA" : "Aguardando fechamento das etapas anteriores"}
-      cta={<form action={appPath(`/api/projects/${id}/historical-diagnosis/run/`)} method="post"><button type="submit" className="rounded-2xl bg-[#C8FF00] px-4 py-3 text-sm font-medium text-[#0A0A0A] hover:bg-[#d6ff4d]">Rodar análise IA</button></form>}
+      cta={<form action={appPath(`/api/projects/${id}/historical-diagnosis/run/`)} method="post"><button type="submit" className="rounded-2xl bg-[#0F172A] px-4 py-3 text-sm font-medium text-white hover:bg-[#111827]">Rodar análise IA</button></form>}
     >
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
@@ -53,14 +53,14 @@ export default async function DiagnosticoPage({ params, searchParams }: { params
         </div>
 
         <RightRail title="Prontidão para validação">
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <div className="text-xs uppercase tracking-[0.18em] text-[#6B6B6B]">Checklist do fluxo</div>
+          <div className="rounded-2xl border border-black/5 bg-[#F8FAFC] p-4">
+            <div className="text-xs uppercase tracking-[0.18em] text-[#98A2B3]">Checklist do fluxo</div>
             <div className="mt-3">
               <WorkflowChecklist items={workflow.checklist.slice(0, 7)} compact />
             </div>
           </div>
           <CopilotPanel endpoint={appPath(`/api/projects/${id}/copilot/`)} />
-          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-white/8 bg-black/20 px-4 py-3 text-sm text-[rgba(250,250,247,0.78)] hover:border-white/15 hover:text-white">Ir para validação e entrega final</Link>
+          <Link href={`/projetos/${project.code}/entrega-final/`} className="block rounded-2xl border border-black/5 bg-[#F8FAFC] px-4 py-3 text-sm text-[#344054] hover:border-white/15 hover:text-[#101828]">Ir para validação e entrega final</Link>
         </RightRail>
       </div>
     </DiagShell>

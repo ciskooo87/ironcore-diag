@@ -16,7 +16,7 @@ export function ValidationMatrix({ hasInference, validations }: { hasInference: 
           </thead>
           <tbody>
             <tr>
-              <td className="border-b border-slate-900 px-3 py-3 text-white">Diagnóstico executivo final</td>
+              <td className="border-b border-slate-900 px-3 py-3 text-[#101828]">Diagnóstico executivo final</td>
               <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{hasInference ? "Leitura consolidada" : "Pendente"}</td>
               <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{decisionLabel}</td>
               <td className="border-b border-slate-900 px-3 py-3 text-slate-300">{latest ? `Auditado em ${latest.validated_at}` : hasInference ? "Aguardando validação humana" : "Aguardando IA"}</td>
@@ -24,7 +24,7 @@ export function ValidationMatrix({ hasInference, validations }: { hasInference: 
           </tbody>
         </table>
       </div>
-      {latest?.summary_text || latest?.note ? <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-3 text-sm text-slate-300"><div className="font-medium text-white">Resumo da decisão</div><div className="mt-2">{latest.summary_text || latest.note}</div></div> : null}
+      {latest?.summary_text || latest?.note ? <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-3 text-sm text-slate-300"><div className="font-medium text-[#101828]">Resumo da decisão</div><div className="mt-2">{latest.summary_text || latest.note}</div></div> : null}
     </div>
   );
 }

@@ -56,34 +56,34 @@ export function DeliveryVersionDiff({ versions }: { versions: VersionRow[] }) {
       <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Comparação entre versões</div>
       <div className="mt-3 grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Versão atual vs anterior</div>
+          <div className="font-medium text-[#101828]">Versão atual vs anterior</div>
           <div className="mt-2">Atual: v{current.version_no} · Anterior: v{previous.version_no}</div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Delta de score</div>
+          <div className="font-medium text-[#101828]">Delta de score</div>
           <div className={`mt-2 font-semibold ${scoreDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{scoreDelta >= 0 ? '+' : ''}{scoreDelta}</div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Plano 5W2H</div>
+          <div className="font-medium text-[#101828]">Plano 5W2H</div>
           <div className={`mt-2 font-semibold ${actionDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{actionDelta >= 0 ? '+' : ''}{actionDelta} ação(ões)</div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Causas raiz</div>
+          <div className="font-medium text-[#101828]">Causas raiz</div>
           <div className={`mt-2 font-semibold ${causeDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{causeDelta >= 0 ? '+' : ''}{causeDelta} item(ns)</div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Riscos prioritários</div>
+          <div className="font-medium text-[#101828]">Riscos prioritários</div>
           <div className={`mt-2 font-semibold ${riskDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{riskDelta >= 0 ? '+' : ''}{riskDelta} item(ns)</div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-slate-300">
-          <div className="font-medium text-white">Linhas de dívida</div>
+          <div className="font-medium text-[#101828]">Linhas de dívida</div>
           <div className={`mt-2 font-semibold ${debtDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{debtDelta >= 0 ? '+' : ''}{debtDelta} linha(s)</div>
         </div>
       </div>
 
       <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-sm text-slate-300">
-          <div className="font-medium text-white">Resumo executivo</div>
+          <div className="font-medium text-[#101828]">Resumo executivo</div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Atual</div>
@@ -96,7 +96,7 @@ export function DeliveryVersionDiff({ versions }: { versions: VersionRow[] }) {
           </div>
         </div>
         <div className="rounded-xl border border-slate-800 px-3 py-3 text-sm text-slate-300">
-          <div className="font-medium text-white">Conclusão</div>
+          <div className="font-medium text-[#101828]">Conclusão</div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Atual</div>

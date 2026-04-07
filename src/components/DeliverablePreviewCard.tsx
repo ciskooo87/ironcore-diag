@@ -15,10 +15,10 @@ export function DeliverablePreviewCard({
 }) {
   const toneClass = {
     slate: "border-slate-800 bg-slate-950/30 text-slate-200",
-    cyan: "border-cyan-400/20 bg-cyan-400/10 text-cyan-100",
-    emerald: "border-emerald-400/20 bg-emerald-400/10 text-emerald-100",
+    cyan: "border-cyan-400/20 bg-cyan-400/10 text-[#0F172A]",
+    emerald: "border-[#ABEFC6] bg-[#ECFDF3] text-[#027A48]",
     violet: "border-violet-400/20 bg-violet-400/10 text-violet-100",
-    amber: "border-amber-400/20 bg-amber-400/10 text-amber-100",
+    amber: "border-[#FEDF89] bg-[#FFFAEB] text-[#B54708]",
   }[tone];
 
   return (

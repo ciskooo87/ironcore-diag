@@ -80,7 +80,7 @@ function SectionTag({ children, dark = false }: { children: React.ReactNode; dar
       className={[
         "inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
         dark
-          ? "border border-white/12 bg-white/8 text-white/72"
+          ? "border border-white/12 bg-white/8 text-[#101828]/72"
           : "border border-[rgba(16,24,40,0.08)] bg-white text-[#667085] shadow-[0_8px_24px_rgba(15,23,42,0.04)]",
       ].join(" ")}
     >
@@ -92,7 +92,7 @@ function SectionTag({ children, dark = false }: { children: React.ReactNode; dar
 function CheckItem({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3 text-sm leading-6 text-[#344054] md:text-[15px]">
-      <span className="mt-1 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-bold text-white">
+      <span className="mt-1 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-bold text-[#101828]">
         ✓
       </span>
       <span>{children}</span>
@@ -128,7 +128,7 @@ export default async function Home() {
 
           <Link
             href={appPath("/login/")}
-            className="inline-flex flex-none items-center justify-center rounded-xl bg-[#0F172A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#111827] md:px-5"
+            className="inline-flex flex-none items-center justify-center rounded-xl bg-[#0F172A] px-4 py-3 text-sm font-semibold text-[#101828] transition hover:bg-[#111827] md:px-5"
           >
             Solicitar diagnóstico
           </Link>
@@ -149,7 +149,7 @@ export default async function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href={appPath("/login/")}
-                className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-7 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#111827]"
+                className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-7 py-4 text-sm font-semibold text-[#101828] transition hover:-translate-y-0.5 hover:bg-[#111827]"
               >
                 Solicitar diagnóstico
               </Link>
@@ -234,14 +234,14 @@ export default async function Home() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-[#0F172A] p-5 text-white shadow-[0_14px_40px_rgba(15,23,42,0.18)]">
-                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Plano de ação</div>
-                    <ul className="mt-4 space-y-3 text-sm leading-6 text-white/88">
+                  <div className="rounded-2xl bg-[#0F172A] p-5 text-[#101828] shadow-[0_14px_40px_rgba(15,23,42,0.18)]">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#101828]/60">Plano de ação</div>
+                    <ul className="mt-4 space-y-3 text-sm leading-6 text-[#101828]/88">
                       <li>• Revisar política comercial e prazo médio de recebimento</li>
                       <li>• Recalibrar mix com foco em margem real</li>
                       <li>• Priorizar medidas de caixa no horizonte imediato</li>
                     </ul>
-                    <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-white/72">
+                    <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-[#101828]/72">
                       Diagnóstico desenhado para acelerar decisão, não para gerar mais camada de análise.
                     </div>
                   </div>
@@ -382,22 +382,22 @@ export default async function Home() {
       </section>
 
       <section className="px-4 py-16 md:px-8 md:py-24 lg:px-10">
-        <div className="mx-auto max-w-7xl rounded-[32px] border border-black/5 bg-[#0F172A] px-6 py-8 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] md:px-10 md:py-12">
+        <div className="mx-auto max-w-7xl rounded-[32px] border border-black/5 bg-[#0F172A] px-6 py-8 text-[#101828] shadow-[0_24px_80px_rgba(15,23,42,0.18)] md:px-10 md:py-12">
           <SectionTag dark>Prova</SectionTag>
           <div className="mt-6 grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
             <div>
-              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+              <h2 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#101828] md:text-5xl">
                 Em testes recentes, a IronCore identificou:
               </h2>
-              <p className="mt-6 max-w-lg text-lg leading-8 text-white/72">
+              <p className="mt-6 max-w-lg text-lg leading-8 text-[#101828]/72">
                 Casos abaixo usados como placeholder até entrada dos cases públicos. A seção já está preparada para receber prova comercial real.
               </p>
             </div>
             <div className="grid gap-4">
               {proofs.map((item, index) => (
                 <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">Achado {index + 1}</div>
-                  <p className="mt-3 text-base font-medium leading-7 text-white">{item}</p>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#101828]/45">Achado {index + 1}</div>
+                  <p className="mt-3 text-base font-medium leading-7 text-[#101828]">{item}</p>
                 </div>
               ))}
             </div>
@@ -453,7 +453,7 @@ export default async function Home() {
           <div className="mt-10">
             <Link
               href={appPath("/login/")}
-              className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-8 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#111827]"
+              className="inline-flex items-center justify-center rounded-xl bg-[#0F172A] px-8 py-4 text-sm font-semibold text-[#101828] transition hover:-translate-y-0.5 hover:bg-[#111827]"
             >
               Solicitar diagnóstico IronCore
             </Link>

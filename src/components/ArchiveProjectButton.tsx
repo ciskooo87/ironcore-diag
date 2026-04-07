@@ -5,17 +5,17 @@ export function ArchiveProjectButton({ action, label, mode = "archive", compact 
     archive: {
       confirm: `Arquivar o projeto ${label}? Ele sairá da lista principal, mas continuará salvo no banco.`,
       text: "Arquivar",
-      cls: "border-rose-400/30 bg-rose-400/10 text-rose-100 hover:bg-rose-400/15",
+      cls: "border-rose-400/30 bg-rose-400/10 text-[#B42318] hover:bg-rose-400/15",
     },
     restore: {
       confirm: `Restaurar o projeto ${label} para a lista principal?`,
       text: "Restaurar",
-      cls: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100 hover:bg-emerald-400/15",
+      cls: "border-emerald-400/30 bg-emerald-400/10 text-[#027A48] hover:bg-emerald-400/15",
     },
     purge: {
       confirm: `Excluir definitivamente o projeto ${label} do banco? Esta ação é irreversível.`,
       text: "Excluir definitivo",
-      cls: "border-rose-500/40 bg-rose-500/15 text-rose-100 hover:bg-rose-500/20",
+      cls: "border-rose-500/40 bg-rose-500/15 text-[#B42318] hover:bg-rose-500/20",
     },
   }[mode];
 

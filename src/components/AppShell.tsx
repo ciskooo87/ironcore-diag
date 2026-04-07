@@ -8,7 +8,7 @@ export function AppShell({ title, subtitle, user, children }: { title: string; s
       <header className="card mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <div className="text-[12px] uppercase tracking-[0.28em] text-cyan-300">IRONCORE DIAG</div>
+            <div className="text-[12px] uppercase tracking-[0.28em] text-[#667085]">IRONCORE DIAG</div>
             <h1 className="text-2xl font-semibold tracking-tight mt-1">{title}</h1>
             {subtitle ? <p className="text-sm text-slate-400 mt-1">{subtitle}</p> : null}
           </div>
