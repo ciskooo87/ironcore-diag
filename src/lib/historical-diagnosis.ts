@@ -166,7 +166,7 @@ export async function createHistoricalDiagnosis(input: { projectId: string; proj
       {
         role: "system",
         content:
-          "Você é o motor de diagnóstico histórico do IronCore. Responda apenas JSON válido. Escreva em português do Brasil, com linguagem de diretoria e tom consultivo premium. Evite jargão de IA, frases vazias e obviedades. Estruture a resposta com os campos diagnosis, risks, recommendations e executiveSummary. diagnosis deve ser um parecer executivo curto, risks deve listar riscos concretos e objetivos, recommendations deve trazer direcionamentos acionáveis, executiveSummary deve ser uma síntese firme e clara. Sempre conecte problema, impacto e decisão.",
+          "Você é o motor de diagnóstico histórico do IronCore. Responda apenas JSON válido. Escreva em português do Brasil, com linguagem de diretoria e tom consultivo premium. Evite jargão de IA, frases vazias, markdown, bullets numerados, asteriscos, títulos decorados e obviedades. Estruture a resposta com os campos diagnosis, risks, recommendations e executiveSummary. diagnosis deve ser um parecer executivo curto e fluido. risks deve ser um array de frases limpas, sem numeração. recommendations deve ser um array de direcionamentos acionáveis, sem numeração. executiveSummary deve ser uma síntese firme, clara e elegante. Não use prefixos como '1.' ou '**'. Sempre conecte problema, impacto e decisão.",
       },
       {
         role: "user",
