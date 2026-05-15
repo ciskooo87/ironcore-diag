@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import type { SessionUser } from "@/lib/auth";
 import { appPath } from "@/lib/app-path";
@@ -71,7 +70,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
         <div className="surface-elevated mb-4 rounded-[28px] border border-black/5 bg-white p-4 lg:hidden">
           <div className="flex items-center gap-3">
             <div className="flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-              <Image src={appPath("/brand/ironcore-mark.webp")} alt="IronCore" width={28} height={28} className="h-9 w-9 object-contain" />
+              <img src={appPath("/brand/ironcore-mark.webp")} alt="IronCore" width={28} height={28} className="h-9 w-9 object-contain" />
             </div>
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#98A2B3]">IronCore Diag</div>
@@ -107,7 +106,7 @@ export function DiagShell({ user, title, subtitle, children, project, active, sc
           <aside className="surface-elevated hidden w-[300px] shrink-0 rounded-[32px] border border-black/5 bg-white p-5 lg:block">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-                <Image src={appPath("/brand/ironcore-mark.webp")} alt="IronCore" width={30} height={30} className="h-9 w-9 object-contain" />
+                <img src={appPath("/brand/ironcore-mark.webp")} alt="IronCore" width={30} height={30} className="h-9 w-9 object-contain" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#98A2B3]">IronCore Diag</div>
